@@ -1,4 +1,5 @@
 #pragma once
+#include "baselib.h"
 #include "DataHelper.h"
 
 class StudentManager
@@ -30,10 +31,19 @@ public:
 	int UpFile(string& strClass, int op = 0);
 	int DownFile(string& strClass, int op = 0);
 
+	int GetFiles(const string& strClass, const string& strStudent, string& strOut);
+
 	int excuteSql(string& strSql);
 
+};
 
+class testTask
+	:public BaseLib::CTask
+{
 public:
+	testTask() {}
+	~testTask() {}
 
+	INT32 Svc(void);
 };
 

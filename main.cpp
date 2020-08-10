@@ -5,6 +5,18 @@
 #define add_device ""
 int main()
 {
+	testTask test;
+	test.Open(2);
+	int i = 10;
+	while (i-->0)
+	{
+		cout << "here is main()\n" ;
+		Sleep(1000);
+	}
+	return 0;
+}
+int testStudentDatahelper()
+{
 	string sqlstr( "select ipaddr from devices where ipaddr = '192.168.2.1'");
 	/*DataHelper dataHelper;
 	if (0 == dataHelper.Connect())
@@ -19,11 +31,12 @@ int main()
 	StudentManager man;
 	ostringstream oStr;
 	ostringstream oStr1;
+	string strsql;
 	Json::StreamWriterBuilder builder;
 	builder.settings_["indentation"] = "";
 	std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
 	Json::Value root, student,classJs,upfile,downfile;
-
+	
 	root["ipaddr"] = "192.168.2.2";
 	root["deviceNumber"] = "T120_2";
 	root["type"] = 0;
@@ -32,20 +45,26 @@ int main()
 	man.Device(oStr.str(),2);
 	cout << oStr.str() << endl;
 
-	student["name"] = "zhang";
+	CCodeConver ch;
+	string strName = "Â∞èÁéã";
+	int nLen = strName.length();
+	LPWSTR wstr = ch.AnsiToUTF8(strName.c_str(), &nLen); 
+
+	student["name"] = strName;
 	student["className"] = "xxx_1";
 	student["deviceNumber"] = "T120_1";
 	student["deviceIP"] = "192.168.2.1";
 	writeInfo->write(student, &oStr1);
 	man.Student(oStr1.str());
-	man.Student(oStr1.str(),2);
-	cout << oStr1.str() << endl;
-
+	strsql = oStr1.str();
+	man.Student(strsql,2);
+	cout << strsql << endl;
+	return 0;
 	classJs["name"] = "xxx_1";
 	oStr1.str("");
 	writeInfo->write(classJs, &oStr1);
 	man.Class(oStr1.str(),1);
-
+	
 	upfile["fileName"] = "filename1";
 	upfile["studentName"] = "zhangsan";
 	upfile["deviceNumber"] = "deviceNumber";
@@ -57,7 +76,7 @@ int main()
 	oStr.str("");
 	writeInfo->write(upfile, &oStr);
 	man.UpFile(oStr.str());
-	string strsql = "{}";
+	strsql = "{}";
 	man.UpFile(strsql,2);
 	cout <<"upfile:" <<strsql <<endl;
 
@@ -73,7 +92,10 @@ int main()
 	man.DownFile(oStr.str(), 2);
 	cout << oStr.str() << endl;
 
-
+	string strOut;
+	man.GetFiles("class2", "zhang", strOut);
+	cout << "I can down load files:" << endl
+		<< strOut << endl;
 	return 0;
 }
 
@@ -90,13 +112,13 @@ QueryFromUpper(DWORD dwCmdId, LPCSTR lpKey, OUT LPCSTR *lpResult)
 	int nRt = -1;
 	switch (dwCmdId)
 	{
-	//¡¨Ω” ˝æ›ø‚
+	//ËøûÊé•Êï∞ÊçÆÂ∫ì
 	case MYSQL_CONNECT:
 	{
 		nRt = BaseLib::TSingleton<DataHelper>::Instance()->Connect();
 		break;
 	}
-	//Œﬁ∑µªÿ”Ôæ‰
+	//Êó†ËøîÂõûËØ≠Âè•
 	case MYSQL_EXXECUTE: {
 		if (!lpKey)
 		{
@@ -106,7 +128,7 @@ QueryFromUpper(DWORD dwCmdId, LPCSTR lpKey, OUT LPCSTR *lpResult)
 		nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
 		break;
 	}
-	//≤È—Ø”Ôæ‰
+	//Êü•ËØ¢ËØ≠Âè•
 	case MYSQL_GETDATA: {
 		if (!lpKey)
 		{
@@ -152,7 +174,7 @@ LpFree(IN LPCSTR& lpResult)
 int mainTest()
 {
 	string sqlstr;
-	//Ω®±Ì
+	//Âª∫Ë°®
 	sqlstr = "CREATE TABLE IF NOT EXISTS new_paper1(";
 	sqlstr += "NewID int(11) NOT NULL AUTO_INCREMENT,";
 	sqlstr += "NewCaption varchar(40) NOT NULL,";
@@ -168,19 +190,19 @@ int mainTest()
 
 		for (int i = 0; i < 5; i++)
 		{
-			//≤Â»Î ˝æ›
+			//ÊèíÂÖ•Êï∞ÊçÆ
 			sqlstr = "INSERT INTO test.new_paper1(NewID,NewCaption,NewContent,NewTime)";
 			sqlstr += "VALUES(default,'jack','this a test','2017-01-11');";
 			dataHelper.excuteSql(sqlstr);
 
 		}
-		//œ‘ æ ˝æ›
+		//ÊòæÁ§∫Êï∞ÊçÆ
 		sqlstr = "SELECT NewID,NewCaption,NewContent,NewTime FROM test.new_paper1";
 		string strRt;
 		dataHelper.Display(sqlstr, strRt);
 		cout << strRt << endl;
 
-		//…æ≥˝±Ì
+		//Âà†Èô§Ë°®
 		sqlstr = "DROP TABLE test.new_paper1";
 		dataHelper.excuteSql(sqlstr);
 		

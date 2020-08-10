@@ -15,15 +15,47 @@ ENDIF()
 include_directories(${BASELIB_HEAD} ./mysql/include)
 link_directories(${BASELIB_LIBRARY} ./mysql/lib)
 
+include_directories(${BASELIB_HEAD} ./libevent/include)
+link_directories(${BASELIB_LIBRARY} ./libevent/lib)
 
 include_directories(. Src)
 aux_source_directory(Src DIR_SRCS)
+include_directories(common)
+aux_source_directory(common DIR_COMMON)
 
-add_executable(DataHelper main.cpp ${DIR_SRCS})
+include_directories(client)
+#add_subdirectory(client)
+aux_source_directory(client DIR_CLIENT)
 
+include_directories(server)
+#add_subdirectory(server)
+aux_source_directory(server DIR_SERVER)
+
+add_executable(DataHelper main.cpp ${DIR_SRCS} ${DIR_COMMON})
 target_link_libraries(DataHelper hrRobotPub)
 target_link_libraries(DataHelper BaseLib)
-target_link_libraries(DataHelper mysql)
+target_link_libraries(DataHelper libmysql)
 target_link_libraries(DataHelper ${CMAKE_THREAD_LIBS_INIT})
+
+
+add_executable(client clientMain.cpp ${DIR_CLIENT}  ${DIR_COMMON})
+target_link_libraries(client hrRobotPub)
+target_link_libraries(client BaseLib)
+target_link_libraries(client libmysql)
+target_link_libraries(client ws2_32)
+target_link_libraries(client event)
+target_link_libraries(client event_core)
+target_link_libraries(client event_extra)
+target_link_libraries(client ${CMAKE_THREAD_LIBS_INIT})
+
+add_executable(server serverMain.cpp ${DIR_SERVER} ${DIR_COMMON})
+target_link_libraries(server hrRobotPub)
+target_link_libraries(server BaseLib)
+target_link_libraries(server libmysql)
+target_link_libraries(server event)
+target_link_libraries(server event_core)
+target_link_libraries(server event_extra)
+target_link_libraries(server ws2_32)
+target_link_libraries(server ${CMAKE_THREAD_LIBS_INIT})
 
 

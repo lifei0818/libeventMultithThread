@@ -308,9 +308,31 @@ int StudentManager::DownFile(string& strClass, int op)
 	return nRt;
 }
 
+int StudentManager::GetFiles(const string & strClass, const string & strStudent, string & strOut)
+{
+	int nRt = -1;
+	string strSql("select fileName, path from upfile where ");
+	strSql += "className='" + strClass + "' and studentName='"+ strStudent + "'";;
+	strSql += " union ";
+	strSql += " select fileName, path from downfile where access REGEXP '"+strClass+"';";
+	nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strSql, strOut);
+	return nRt;
+}
+
 int StudentManager::excuteSql(string & strSql)
 {
 	int nRt = -1;
 	nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strSql, strSql);
 	return nRt;
+}
+
+INT32 testTask::Svc(void)
+{
+	int i = 10;
+	while (i--) {
+		Sleep(1000);
+		cout << "here is test;Svc\t" <<PrintThreadId()<< endl;
+	}
+	Close();
+	return TASK_BREAK;
 }
