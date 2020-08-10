@@ -1,55 +1,10 @@
 #include "server.h"
-server::server(int number)
-	:m_nNumber(number)
-	, m_last_thread(-1)
-{
-}
 
-server::~server()
-{
-}
-void server::start()
-{
-	Open(m_nNumber);
-	server();
-}
-INT32 server::Svc(void)
-{
-	int index = 0;
-	{
-		std::lock_guard<std::mutex> lock(m_mutex);
-		index = (m_last_thread + 1) % m_nNumber;	//线程编号，从1开始
-	}
-
-	//struct event_base * thread_base;            // 事件根基
-	//struct event   notify_event;
-	//evutil_socket_t  notfiy_recv_fd;            // socketpair 接收端fd（工作线程接收通知）
-	//evutil_socket_t  notfiy_send_fd;            // socketpair 发送端fd（监听线程发送通知）
-	//std::mutex conn_mtx;                        //维护连接队列的锁
-	//std::queue<conn_queue_item>  conn_queue;    //conn_queue 是一个管理conn_queue_item的队列
-
-	////设置线程事件notify_event
-	//event_set(&notify_event, notfiy_recv_fd,//EV_READ表示只要这个socket可读就调用notify_cb函数
-	//	EV_READ | EV_PERSIST, ::notify_cb, plt);
-	////设置事件和event_base的关系
-	//event_base_set(plt->thread_base, &plt->notify_event); // 设置事件的从属关系（相当于指明事件属于哪个event_base）
-	////添加事件
-	//event_add(&plt->notify_event, 0); // 正式添加事件    
-	return INT32();
-}
-///////////////////////////////////////////////////////////////////////////////////
 int LibEvtServer::m_last_thread = -1;
 std::vector<LibeventThread*> LibEvtServer::m_libevent_threads;
 
-bool LibEvtServer::init(/*I_NetServerEvent* event, int start, int size*/)
+bool LibEvtServer::init()
 {
-	//m_ids = new ChannelIDGenerator();
-	//m_ids->init(start, size);
-	//m_allChannels.resize(m_ids->getSize());
-
-	//m_event = event;
-
-
 	////event支持windows下线程的函数
 	//int hr = evthread_use_windows_threads();
 	m_base = event_base_new();
@@ -144,7 +99,6 @@ void LibEvtServer::listener_cb(struct evconnlistener *listener, evutil_socket_t 
 
 	conn_queue_item item;
 	item.fd = fd;
-	//item.ch2 = NULL;
 
 	auto  plt = m_libevent_threads[cur_thread];
 	{
@@ -157,7 +111,6 @@ void LibEvtServer::listener_cb(struct evconnlistener *listener, evutil_socket_t 
 #else
 			Sleep(1);
 #endif
-			Plug::PlugMessageBox("连接队列居然满了，超过1000的未处理数！");
 		}
 #else
 		std::lock_guard<std::mutex> lock(plt->conn_mtx);
@@ -185,7 +138,6 @@ void LibEvtServer::listener_cb(struct evconnlistener *listener, evutil_socket_t 
 
 #endif
 }
-
 
 
 //侦听端口,-1表示向系统申请一个任意可用端口
@@ -218,20 +170,12 @@ bool LibEvtServer::listen(int* port)
 	}
 	m_spListenThread.reset(new std::thread([this]//现在看这个线程只是收到连接，然后交给线程，然后通知线程
 	{
-		//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
-		//event_base_loop(m_base, EVLOOP_ONCE);
 		event_base_dispatch(m_base);
-		if (WSAENOTSOCK == WSAGetLastError())
-		{
-			//Plug::PlugMessageBox(L"操作无效套接字啊！");
-		}
-
-		//Plug::PlugMessageBox(L"Libevent派发线程退出！");
 	}));
 	return true;
 }
 
-void /*LibEvtServer::*/notify_cb(evutil_socket_t fd, short which, /*LibeventThread*/void *pLibeventThread)
+void notify_cb(evutil_socket_t fd, short which, void *pLibeventThread)
 {
 	//首先将socketpair的1个字节通知信号读出（这是必须的，在水平触发模式下如果不处理该事件，则会循环通知，直到事件被处理）
 	char  buf[1];
@@ -262,8 +206,6 @@ void /*LibEvtServer::*/notify_cb(evutil_socket_t fd, short which, /*LibeventThre
 
 	//创建每个socket的bufferevent
 	auto bev = bufferevent_socket_new(plt->thread_base, item.fd, BEV_OPT_THREADSAFE);
-
-	//Channel2* c2 = CreateChannel(bev);
 
 	//设置接收、状态改变 回调函数
 	bufferevent_setcb(bev, ::socket_read_cb, NULL, ::socket_event_cb, (void*)bev);

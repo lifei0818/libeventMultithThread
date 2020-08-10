@@ -1,15 +1,6 @@
 #include "client.h"
-
-client::client()
-{
-}
-
-
-client::~client()
-{
-}
-
 #include<errno.h>
+
 #ifdef WIN32
 #include <windows.h>
 #include <Winsock2.h>
@@ -22,15 +13,6 @@ client::~client()
 #include<unistd.h>
 #endif // WIN32
 
-
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-
-#include<event.h>
-#include<event2/bufferevent.h>
-#include<event2/buffer.h>
-#include<event2/util.h>
 
 int client(int argc, char** argv)
 {
@@ -78,9 +60,6 @@ int client(int argc, char** argv)
 	printf("finished \n");
 	return 0;
 }
-
-
-
 
 
 void cmd_msg_cb(evutil_socket_t fd, short events, void* arg)

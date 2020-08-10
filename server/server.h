@@ -7,20 +7,6 @@
 #include <vector>
 #define MUL_LIBEVENT_THREAD
 #define THREAD_NUMB 10
-class server
-	: public BaseLib::CTask
-{
-public:
-	server(int number=4);
-	~server();
-	void  start();		//accept
-	INT32 Svc(void) ;	//客户端服务线程
-private:
-	int m_last_thread;	//最后一个线程
-	int m_nNumber;		//线程个数
-	//std::queue<int> m_queue;
-	std::mutex  m_mutex;
-};
 
 //多线程版Libevent
 struct conn_queue_item {
@@ -48,32 +34,26 @@ void notify_cb(evutil_socket_t fd, short which, /*LibeventThread **/void *pLibev
 void conn_readcb(bufferevent *bev, void *arg);
 void conn_eventcb(bufferevent *bev, short events, void *arg);
 class LibEvtServer
+	:public BaseLib::ISingleton<LibEvtServer>
 {
 public:
-	static int m_last_thread;	//最后一个线程
-	static std::vector<LibeventThread*> m_libevent_threads;
-	bool init(/*I_NetServerEvent* event, int start, int size*/);
+	bool init();
 	bool init_threads(int thread_numb);
 	void setup_libevent_thread(LibeventThread * pLibeventThread);
 	static void listener_cb(struct evconnlistener *listener, evutil_socket_t fd,
 		struct sockaddr *sa, int socklen, void *user_data);
 	bool listen(int* port);
 
-	//void notify_cb(evutil_socket_t fd, short which, LibeventThread *pLibeventThread);
+	//static notify_cb(evutil_socket_t fd, short which, LibeventThread *pLibeventThread);
 	//static void conn_readcb(bufferevent *bev, void *arg);
 	//static void conn_eventcb(bufferevent *bev, short events, void *arg);
 	struct event_base * m_base;
 private:
+	static int m_last_thread;	//最后一个线程
+	static std::vector<LibeventThread*> m_libevent_threads;
 	struct evconnlistener * m_listener;
 	std::shared_ptr<std::thread>   m_spListenThread;    //accept 线程
 };
-
-#include<stdio.h>  
-#include<string.h>  
-
-#include<event.h>  
-#include<event2/listener.h>  
-#include<event2/bufferevent.h>  
 
 int server();
 void listener_cb(evconnlistener *listener, evutil_socket_t fd,
