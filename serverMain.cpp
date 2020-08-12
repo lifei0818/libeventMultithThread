@@ -23,8 +23,8 @@ int main()
 		libEvt.listen(&nPort);
 	}
 	while (1)
-	{
-		Sleep(1000);
+    {
+        BaseLib::OS::sleep(SEC_TIME(1));
 	}
 	return 0;
 }

@@ -6,6 +6,7 @@
 #include <mutex>
 #include <vector>
 #include <map>
+#include <thread>
 #include "work.h"
 #define MUL_LIBEVENT_THREAD
 #define THREAD_NUMB 2

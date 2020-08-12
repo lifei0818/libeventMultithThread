@@ -59,7 +59,7 @@ int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 		event_base_dispatch(me);
 	}, m_pBase));
 
-#ifdef DEBUG
+#if 1
 	char buffer[4096];
 	bool isBreak = false;
 	while (!isBreak) {
@@ -96,20 +96,20 @@ int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 		
 		//int write_num = write(sockfd, buffer, strlen(buffer));
 		//std::cout << write_num << " characters written" << std::endl;
-		Sleep(2000);
-		Json::StreamWriterBuilder builder;
-		builder.settings_["indentation"] = "";
-		std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
-		Json::Value root;
-		root[FILE_DESCRIBE][FILE_CLASS] = "class_1";
-		root[FILE_DESCRIBE][FILE_STUDENT] = "zhang0";
-		root[FILE_DESCRIBE][FILE_COURES] = "lession1";
-		root[FILE_DESCRIBE][FILE_PATH] = "H:\\workspace\\CMake\\mysql\\build\\Debug\\Movej.program";
-		ostringstream oStr;
-		writeInfo->write(root, &oStr);
-		SendFileToServer(oStr.str());
-		Sleep(10000);
-		break;
+        BaseLib::OS::sleep(1);
+//		Json::StreamWriterBuilder builder;
+//		builder.settings_["indentation"] = "";
+//		std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
+//		Json::Value root;
+//		root[FILE_DESCRIBE][FILE_CLASS] = "class_1";
+//		root[FILE_DESCRIBE][FILE_STUDENT] = "zhang0";
+//		root[FILE_DESCRIBE][FILE_COURES] = "lession1";
+//		root[FILE_DESCRIBE][FILE_PATH] = "H:\\workspace\\CMake\\mysql\\build\\Debug\\Movej.program";
+//		ostringstream oStr;
+//		writeInfo->write(root, &oStr);
+//		SendFileToServer(oStr.str());
+//        BaseLib::OS::sleep(1);
+//		break;
 	}
 #endif // DEBUG
 	return 0;

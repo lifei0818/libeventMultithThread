@@ -15,9 +15,12 @@ bool WinSockInit();
 #endif // WIN32
 
 using namespace std;
+
 void log_callback(int severity, const char *msg);
 int string_to_int(const std::string &p_content);
 string num_to_string(int p_int);
+
+
 class CWorker {
 public:
 	CWorker() : m_bev(NULL) {}

@@ -1,5 +1,7 @@
 #include "work.h"
+#ifdef WIN32
 #include <windows.h>
+#endif
 CServerWorker::CServerWorker()
 {
 }

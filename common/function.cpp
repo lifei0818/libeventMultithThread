@@ -15,6 +15,8 @@ bool WinSockInit() {
 	}
 	return true;
 }
+#else
+#define DIRECTORY_ROOT "/tmp/Files"
 #endif // WIN32
 
 void log_callback(int severity, const char *msg)
