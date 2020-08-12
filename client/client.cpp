@@ -16,6 +16,14 @@
 
 int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 {
+
+#ifdef WIN32
+	evthread_use_windows_threads();
+	WinSockInit();
+#else
+	evthread_use_pthreads();
+#endif // WIN32
+
 	//两个参数依次是服务器端的IP地址、端口号
 	m_pBase = event_base_new();
 
@@ -35,8 +43,11 @@ int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 		sizeof(server_addr));
 
 
-	bufferevent_setcb(m_pBev, server_msg_cb, NULL, event_cb, NULL);
+	bufferevent_setcb(m_pBev, server_msg_cb, NULL, event_cb, this);
 	bufferevent_enable(m_pBev, EV_READ |EV_WRITE);
+
+	m_spWorker.reset(new CClientWorker);
+	m_spWorker->SetBev(m_pBev);
 
 	m_spListenThread.reset(new std::thread([]
 	(void* arg)
@@ -48,7 +59,7 @@ int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 		event_base_dispatch(me);
 	}, m_pBase));
 
-
+#ifdef DEBUG
 	char buffer[4096];
 	bool isBreak = false;
 	while (!isBreak) {
@@ -57,6 +68,21 @@ int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 		if (strcmp("q", buffer) == 0 || strcmp("quit", buffer) == 0) {
 			isBreak = true;
 			break;
+
+		}
+		else if(strcmp("f", buffer) == 0)
+		{
+			Json::StreamWriterBuilder builder;
+			builder.settings_["indentation"] = "";
+			std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
+			Json::Value root;
+			root[FILE_CLASS] = "class_1";
+			root[FILE_STUDENT] = "zhang0";
+			root[FILE_COURES] = "lession1";
+			root[FILE_PATH] = "H:\\workspace\\CMake\\mysql\\build\\Debug\\Movej.program";
+			ostringstream oStr;
+			writeInfo->write(root,&oStr);
+			SendFileToServer(oStr.str());
 
 		}
 		std::cout << "Your input is " << buffer << std::endl;
@@ -71,7 +97,21 @@ int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 		//int write_num = write(sockfd, buffer, strlen(buffer));
 		//std::cout << write_num << " characters written" << std::endl;
 		Sleep(2000);
+		Json::StreamWriterBuilder builder;
+		builder.settings_["indentation"] = "";
+		std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
+		Json::Value root;
+		root[FILE_DESCRIBE][FILE_CLASS] = "class_1";
+		root[FILE_DESCRIBE][FILE_STUDENT] = "zhang0";
+		root[FILE_DESCRIBE][FILE_COURES] = "lession1";
+		root[FILE_DESCRIBE][FILE_PATH] = "H:\\workspace\\CMake\\mysql\\build\\Debug\\Movej.program";
+		ostringstream oStr;
+		writeInfo->write(root, &oStr);
+		SendFileToServer(oStr.str());
+		Sleep(10000);
+		break;
 	}
+#endif // DEBUG
 	return 0;
 }
 
@@ -83,6 +123,8 @@ void LibEvtClient::server_msg_cb(struct bufferevent* bev, void* arg)
 	msg[len] = '\0';
 
 	printf("recv %s from server\n", msg);
+	LibEvtClient * plt = (LibEvtClient*)arg;
+	plt->Process(msg);
 }
 
 
@@ -101,9 +143,6 @@ void LibEvtClient::event_cb(struct bufferevent *bev, short event, void *arg)
 
 	//这将自动close套接字和free读写缓冲区
 	bufferevent_free(bev);
-
-	struct event *ev = (struct event*)arg;
-	event_free(ev);
 }
 void LibEvtClient::SendToServer(std::string& strMsg)
 {
@@ -112,4 +151,14 @@ void LibEvtClient::SendToServer(std::string& strMsg)
 	int len = send(fd, strMsg.c_str(), strMsg.length(), 0);
 	std::cout << "send length:" << len << std::endl;
 	//bufferevent_write(m_pBev, strMsg.c_str(), strMsg.length());
+}
+
+void LibEvtClient::Process(string strData)
+{
+	m_spWorker->Process(strData);
+}
+
+void LibEvtClient::SendFileToServer(string strData)
+{
+	m_spWorker->SendFileTo("CXWJ",strData);
 }
