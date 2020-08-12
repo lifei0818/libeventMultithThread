@@ -5,9 +5,11 @@
 #include <queue>
 #include <mutex>
 #include <vector>
+#include <map>
+#include "work.h"
 #define MUL_LIBEVENT_THREAD
-#define THREAD_NUMB 10
-
+#define THREAD_NUMB 2
+using namespace std;
 //多线程版Libevent
 struct conn_queue_item {
 	int fd;
@@ -23,6 +25,7 @@ struct LibeventThread
 	struct event   notify_event;
 	evutil_socket_t  notfiy_recv_fd;            // socketpair 接收端fd（工作线程接收通知）
 	evutil_socket_t  notfiy_send_fd;            // socketpair 发送端fd（监听线程发送通知）
+	std::map<evutil_socket_t, CServerWorker>  data_map;		//存储读到的数据
 #ifdef BOOST_LOCKFREE
 	boost::lockfree::spsc_queue<conn_queue_item, boost::lockfree::capacity<1000> > conn_queue;
 #else

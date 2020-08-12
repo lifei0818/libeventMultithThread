@@ -188,33 +188,24 @@ void notify_cb(evutil_socket_t fd, short which, void *pLibeventThread)
 	//从自己的连接队列中取出连接数
 	{
 		//取出队列中的第一个元素
-#ifdef BOOST_LOCKFREE
-		while (!plt->conn_queue.pop(item))//pop一个出来
-		{
-#ifndef _DEBUG
-			boost::this_thread::interruptible_wait(1);
-#else
-			Sleep(1);
-#endif
-			Plug::PlugMessageBox("通知队列居然弹空了啊！");
-		}
-#else
 		std::lock_guard<std::mutex>  lck(plt->conn_mtx);
 		item = plt->conn_queue.front();
-#endif
+		plt->conn_queue.pop();
 	}
 
 	//创建每个socket的bufferevent
-	auto bev = bufferevent_socket_new(plt->thread_base, item.fd, BEV_OPT_THREADSAFE);
+	auto bev = bufferevent_socket_new(plt->thread_base, item.fd, BEV_OPT_THREADSAFE|BEV_OPT_CLOSE_ON_FREE); //
+
+	//为每个socket添加数据处理函数
+	plt->data_map[item.fd].SetBev(bev);
 
 	//设置接收、状态改变 回调函数
-	bufferevent_setcb(bev, ::socket_read_cb, NULL, ::socket_event_cb, (void*)bev);
-	bufferevent_enable(bev, EV_READ | EV_WRITE);
+	bufferevent_setcb(bev, ::conn_readcb, NULL, ::conn_eventcb, (void*)plt);
+	bufferevent_enable(bev, EV_READ | EV_WRITE/*|EV_PERSIST*/);
 }
 void /*LibEvtServer::*/conn_readcb(bufferevent *bev, void *arg)
 {
 	char msg[4096];
-
 	size_t len = bufferevent_read(bev, msg, sizeof(msg) - 1);
 
 	msg[len] = '\0';
@@ -222,6 +213,9 @@ void /*LibEvtServer::*/conn_readcb(bufferevent *bev, void *arg)
 
 	char reply[] = "I has read your data";
 	bufferevent_write(bev, reply, strlen(reply));
+
+	auto plt = (LibeventThread *)arg;
+	plt->data_map[bufferevent_getfd(bev)].Process(msg);
 }
 void /*LibEvtServer::*/conn_eventcb(bufferevent *bev, short events, void *arg)
 {

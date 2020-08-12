@@ -19,7 +19,11 @@ int main()
 	buff[2] = buffPort;
 	char** argv = buff;
 	//client(3, argv);
-	client2(3, argv);
+	//client2(3, argv);
+	LibEvtClient libEvt;
+	std::string strIp(argv[1]);
+	int nPort = atoi(argv[2]);
+	libEvt.InitSystem(strIp,nPort);
 	
 	//while (1) ;
 	return 0;

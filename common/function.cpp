@@ -1,5 +1,7 @@
 #include "function.h"
 #include "baselib.h"
+#include <sstream>
+#ifdef WIN32
 bool WinSockInit() {
 	WSADATA data = { 0 };
 	if (WSAStartup(MAKEWORD(2, 2), &data))
@@ -10,6 +12,8 @@ bool WinSockInit() {
 	}
 	return true;
 }
+#endif // WIN32
+
 void log_callback(int severity, const char *msg)
 {
 	char szBuffer[512];
@@ -43,4 +47,21 @@ void log_callback(int severity, const char *msg)
 	(void)fwrite(szBuffer, 1, strlen(szBuffer), pFd);
 
 	fclose(pFd);
+}
+
+using namespace std;
+int string_to_int(const std::string &p_content) {
+	int m_res;
+	if (p_content == "TRUE" || p_content == "ON") {
+		m_res = 1;
+	}
+	else if (p_content == "FALSE" || p_content == "OFF") {
+		m_res = 0;
+	}
+	else {
+		stringstream ss;
+		ss << p_content;
+		ss >> m_res;
+	}
+	return m_res;
 }
