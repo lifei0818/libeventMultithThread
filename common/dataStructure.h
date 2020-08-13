@@ -5,6 +5,7 @@
 #define PAGHEAD string("TCPHEAD")
 #define PAGTAIL string("TCPTAIL")
 #define SEGCHAR string("x")
+#define EXPORTDLL __declspec(dllexport)
 
 #define FILE_DESCRIBE	"describe"
 #define FILE_PATH		"filepath"

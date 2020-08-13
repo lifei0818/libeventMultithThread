@@ -1,5 +1,6 @@
 #include "common/function.h"
 #include "server.h"
+#include "StudentManager.h"
 
 int main()
 {
@@ -22,6 +23,7 @@ int main()
 		int nPort = 12345;
 		libEvt.listen(&nPort);
 	}
+	StudentManager man;
 	while (1)
     {
         BaseLib::OS::sleep(SEC_TIME(1));

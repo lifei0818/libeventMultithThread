@@ -111,7 +111,8 @@ CClientWorker::~CClientWorker()
 void CClientWorker::excuteCommand(std::string& command, std::string& content)
 {
 	switch (m_commandType[command]) {
-	case JLLJ: CommonTEST( content); break;
+	case WCZL: CommonWCZL( content); break;
+	case MSQL: CommonMSQL(content); break;
 	default:break;
 	}
 }
@@ -150,8 +151,9 @@ void CClientWorker::excuteFile(TCPSOURCETYPE src, string command)
 
 void CClientWorker::initParameter()
 {
-	m_fileType["DWWJ"] = DWWJ;
-	m_commandType["JLLJ"] = JLLJ;
+	m_fileType["CSWJ"] = CSWJ;
+	m_commandType["WCZL"] = WCZL;
+	m_commandType["MSQL"] = MSQL;
 }
 
 int CClientWorker::SendToServer(string & strMsg)
@@ -247,4 +249,22 @@ int CClientWorker::SendToServer(string & strMsg)
 
 void CClientWorker::CommonTEST(string & strContent)
 {
+}
+
+void CClientWorker::CommonWCZL(string & strContent)
+{
+	setCMDFinishFlag(1);
+}
+
+void CClientWorker::CommonMSQL(string & strContent)
+{
+	//存储服务端sql返回的数据
+
+}
+
+void CClientWorker::SendMSQL(string strsql)
+{
+	setCMDFinishFlag(-1);
+	SendMsgTo("MSQL", strsql);
+	waitCMDFinishFlag();
 }

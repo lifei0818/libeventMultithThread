@@ -1,8 +1,9 @@
 #pragma once
 #include "baselib.h"
 #include "DataHelper.h"
+#include "dataStructure.h"
 
-class StudentManager
+class EXPORTDLL StudentManager
 {
 public:
 	StudentManager();

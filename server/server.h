@@ -37,7 +37,7 @@ struct LibeventThread
 void notify_cb(evutil_socket_t fd, short which, /*LibeventThread **/void *pLibeventThread);
 void conn_readcb(bufferevent *bev, void *arg);
 void conn_eventcb(bufferevent *bev, short events, void *arg);
-class LibEvtServer
+class EXPORTDLL LibEvtServer
 	:public BaseLib::ISingleton<LibEvtServer>
 {
 public:

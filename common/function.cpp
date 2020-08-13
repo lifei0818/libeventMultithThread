@@ -257,6 +257,31 @@ void CWorker::SendFileTo(const char* label, string & strMsg)
 
 }
 
+int CWorker::SendMsgTo(const char * label, string strMsg)
+{
+	int size = strMsg.length();
+	int time = size / PAGSIZE + 1;
+	for (int i = 0; i < time; i++) {
+		int length = PAGSIZE;
+		if (i == time - 1) {
+			length = size % PAGSIZE;
+		}
+		PagTCP pag;
+		pag.label = string(label);
+		pag.src = TCPSOURCE_SERVER;
+		pag.type = TCPPACKAGE_MSG;
+		pag.num = i + 1;
+		pag.allnum = time;
+		pag.content = strMsg.substr(i * PAGSIZE, length);
+
+		if (SendMsgTo(strMsg) < 0) {
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 int CWorker::send_package(PagTCP& pag) {
 	string str = PAGHEAD;
 	str += pag.label;
@@ -287,4 +312,18 @@ int CWorker::SendMsgTo(string & strMsg)
 {
 	//bufferevent_write(m_bev, strMsg.c_str(), strMsg.length());
 	return send(bufferevent_getfd(m_bev), strMsg.c_str(), strMsg.length(), 0);
+}
+void CWorker::setCMDFinishFlag(int flag) {
+	m_cmdFinishFlag = flag;
+	//sendWCZL(flag);
+	SendMsgTo("WCZL", "1");
+}
+
+int CWorker::waitCMDFinishFlag() {
+	while (1) {
+		if (m_cmdFinishFlag >= 0) {
+			return m_cmdFinishFlag;
+		}
+		BaseLib::OS::sleep(1);
+	}
 }

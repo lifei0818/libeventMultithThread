@@ -14,7 +14,9 @@ CServerWorker::~CServerWorker()
 void CServerWorker::excuteCommand(std::string& command, std::string& content)
 {
 	switch (m_commandType[command]) {
-	case JLLJ: CommonTEST( content); break;
+	case WCZL: CommonWCZL(content); break;
+	case MSQL: CommonMSQL(content); break;
+	case TEST: CommonTEST( content); break;
 	default:break;
 	}
 }
@@ -22,7 +24,7 @@ void CServerWorker::excuteCommand(std::string& command, std::string& content)
 void CServerWorker::excuteFile(string command, Json::Value& describeJson)
 {
 	switch (m_fileType[command]) {
-	//case CSWJ: commandCSWJ(src); break;
+	case CXWJ: CommonCXWJ(describeJson); break;
 	default: break;
 	}
 }
@@ -30,15 +32,16 @@ void CServerWorker::excuteFile(string command, Json::Value& describeJson)
 void CServerWorker::excuteFile(TCPSOURCETYPE src, string command)
 {
 	switch (m_fileType[command]) {
-	//case CSWJ: commandCSWJ( src); break;
+	//case CXWJ: CommonCXWJ( src); break;
 	default: break;
 	}
 }
 
 void CServerWorker::initParameter()
 {
-	m_fileType["DWWJ"] = DWWJ;
-	m_commandType["JLLJ"] = JLLJ;
+	m_fileType["CXWJ"] = CXWJ;
+	m_commandType["WCZL"] = WCZL;
+	m_commandType["MSQL"] = MSQL;
 }
 
 void CServerWorker::SendToClient(string & strMsg)
@@ -46,6 +49,21 @@ void CServerWorker::SendToClient(string & strMsg)
 	bufferevent_write(m_bev, strMsg.c_str(), strMsg.length());
 }
 
+void CServerWorker::CommonCXWJ(Json::Value & strContent)
+{
+	//写文件信息到数据库
+}
+
 void CServerWorker::CommonTEST(string & strContent)
 {
+}
+
+void CServerWorker::CommonWCZL(string & strContent)
+{
+	setCMDFinishFlag(1);
+}
+
+void CServerWorker::CommonMSQL(string & strContent)
+{
+	//执行Mysql语句
 }

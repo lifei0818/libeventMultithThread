@@ -27,6 +27,7 @@ int main()
 	int nPort = atoi(argv[2]);
 	libEvt.InitSystem(strIp,nPort);
 	
+	
 	//while (1) ;
 	return 0;
 }
