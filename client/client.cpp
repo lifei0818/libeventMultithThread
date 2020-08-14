@@ -39,14 +39,17 @@ int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 	//inet_aton(argv[1], &server_addr.sin_addr);
 	inet_pton(AF_INET, strIP.c_str(), &server_addr.sin_addr);
 
-	bufferevent_socket_connect(m_pBev, (struct sockaddr *)&server_addr,
+	int nRt = bufferevent_socket_connect(m_pBev, (struct sockaddr *)&server_addr,
 		sizeof(server_addr));
-
+	if (nRt == -1)
+	{
+		DBGPRINT(DBG_ERROR,"connect false!");
+	}
 
 	bufferevent_setcb(m_pBev, server_msg_cb, NULL, event_cb, this);
 	bufferevent_enable(m_pBev, EV_READ |EV_WRITE);
 
-	m_spWorker.reset(new CClientWorker);
+	m_spWorker.reset(new CClientWorker());
 	m_spWorker->SetBev(m_pBev);
 
 	m_spListenThread.reset(new std::thread([]
@@ -94,9 +97,14 @@ int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 		std::string strMsg(buffer);
 		SendToServer(strMsg);
 		
-		//int write_num = write(sockfd, buffer, strlen(buffer));
-		//std::cout << write_num << " characters written" << std::endl;
+		string strFileList;
+		GetFileList("class1","zhangsan",strFileList);
+		cout << "file list:"<<endl << strFileList << endl;
         BaseLib::OS::sleep(1);
+		UpperFile("class2", "life", "lesson6", "config.ini" , "c:\\config.ini","T120_10", 1);
+		BaseLib::OS::sleep(1);
+		DownloadFile("c:\\config.ini", "lesson6", 1, 0);
+		BaseLib::OS::sleep(1);
 //		Json::StreamWriterBuilder builder;
 //		builder.settings_["indentation"] = "";
 //		std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
@@ -113,6 +121,62 @@ int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 	}
 #endif // DEBUG
 	return 0;
+}
+
+void LibEvtClient::UpperFile(string strClass, string strStudent, string strCoures, string strFileName, string strFilePath, string strDeviceNum,int nType)
+{
+
+	Json::StreamWriterBuilder builder;
+	builder.settings_["indentation"] = "";
+	std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
+	Json::Value root;
+	root[FILE_DESCRIBE][FILE_CLASS] = strClass;
+	root[FILE_DESCRIBE][FILE_STUDENT] = strStudent;
+	root[FILE_DESCRIBE][FILE_COURES] = strCoures;
+	root[FILE_DESCRIBE][FILE_NAME] = strFileName;
+	root[FILE_DESCRIBE][FILE_PATH] = strFilePath;
+	root[FILE_DESCRIBE][FILE_TYPE] = nType;
+	root[FILE_DESCRIBE][DEVICE_NUMBER] = strDeviceNum;
+	ostringstream oStr;
+	writeInfo->write(root, &oStr);
+	SendFileToServer(oStr.str());
+    BaseLib::OS::sleep(1);
+}
+
+void LibEvtClient::DownloadFile(string strPath, string strCoures, int nType, int nTemplate)
+{
+	Json::StreamWriterBuilder builder;
+	builder.settings_["indentation"] = "";
+	std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
+	Json::Value root;
+	//root[FILE_DESCRIBE][FILE_CLASS] = strClass;
+	//root[FILE_DESCRIBE][FILE_STUDENT] = strStudent;
+	root[FILE_DESCRIBE][FILE_COURES] = strCoures;
+	root[FILE_DESCRIBE][FILE_PATH] = strPath;
+	root[FILE_DESCRIBE][FILE_TYPE] = nType;
+	root[FILE_DESCRIBE][FILE_TEMPLATE] = nTemplate;
+	ostringstream oStr;
+	writeInfo->write(root, &oStr);
+
+	m_spWorker->setCMDFinishFlag(-1);
+	m_spWorker->SendXZWJ(oStr.str());
+	m_spWorker->waitCMDFinishFlag();
+}
+
+void LibEvtClient::GetFileList(string strClass, string strStudent, string& strOut)
+{
+	Json::StreamWriterBuilder builder;
+	builder.settings_["indentation"] = "";
+	std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
+	Json::Value root;
+	root[FILE_CLASS] = strClass;
+	root[FILE_STUDENT] = strStudent;
+	ostringstream oStr;
+	writeInfo->write(root, &oStr);
+	m_spWorker->setCMDFinishFlag(-1);
+	m_spWorker->SendWJLB(oStr.str());
+	m_spWorker->waitCMDFinishFlag();
+	strOut = m_spWorker->GetFileList();
 }
 
 void LibEvtClient::server_msg_cb(struct bufferevent* bev, void* arg)

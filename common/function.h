@@ -37,9 +37,14 @@ public:
 	virtual void excuteFile(string command, Json::Value& describeJson) = 0;
 protected:
 	bool StringToJson(string & strSoure, Json::Value & Root);
+	string JsonToString(Json::Value & Root);
+	void SendWCZL();
+	string GetDirectory(int nType);
 private:
 	bool GetPackage(PagTCP& new_package);
 	int send_package(PagTCP& pag);
+
+	string GetExtension(int nType);
 
 	int m_cmdFinishFlag;
 protected:

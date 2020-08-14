@@ -4,7 +4,8 @@
 #ifdef WIN32
 
 #define DIRECTORY_ROOT "C:\\Files\\"
-
+#define DIRECTORY_ROOT_UP  DIRECTORY_ROOT"upfile\\"
+#define DIRECTORY_ROOT_DOWN DIRECTORY_ROOT"downfile\\"
 bool WinSockInit() {
 	WSADATA data = { 0 };
 	if (WSAStartup(MAKEWORD(2, 2), &data))
@@ -16,7 +17,9 @@ bool WinSockInit() {
 	return true;
 }
 #else
-#define DIRECTORY_ROOT "/tmp/Files"
+#define DIRECTORY_ROOT "/tmp/Files/"
+#define DIRECTORY_ROOT_UP  DIRECTORY_ROOT"upfile/"
+#define DIRECTORY_ROOT_DOWN DIRECTORY_ROOT"downfile/"
 #endif // WIN32
 
 void log_callback(int severity, const char *msg)
@@ -103,10 +106,22 @@ void CWorker::Process(string strData)
 				if (StringToJson(new_package.content, fileJS))
 				{
 					DBGPRINT(DBG_CLIENT_RECV, ">>> recv file: " << new_package.label << ", " << new_package.num << "/" << new_package.allnum);
-					string strPath(DIRECTORY_ROOT);
+					string strPath(DIRECTORY_ROOT_UP);
 					strPath += fileJS[FILE_DESCRIBE][FILE_CLASS].asString() + PATH_SEPARATOR;
-					strPath += fileJS[FILE_DESCRIBE][FILE_STUDENT].asString() + PATH_SEPARATOR;
-					strPath += fileJS[FILE_DESCRIBE][FILE_COURES].asString() + ".program";
+					if (!BaseLib::IsFileExist(strPath.c_str()))
+					{
+						BaseLib::CxxCreateDirectory(strPath.c_str());
+					}
+#ifdef __SERVER
+					strPath += fileJS[FILE_DESCRIBE][FILE_COURES].asString()+ "_"; // + ".program";
+					strPath += fileJS[FILE_DESCRIBE][FILE_STUDENT].asString() ;					
+					int nType = fileJS[FILE_DESCRIBE][FILE_TYPE].asInt();
+					strPath += GetExtension(nType);
+#else
+					strPath += fileJS[FILE_DESCRIBE][FILE_NAME].asString();
+#endif // __SERVER
+					fileJS[FILE_DESCRIBE][FILE_PATH] = strPath;
+
 					if (!out.is_open()) {
 						out.open(strPath.c_str(), ios::binary | ios::app);
 						if (!out) {
@@ -198,7 +213,30 @@ bool CWorker::StringToJson(string & strSoure, Json::Value & Root)
 	return false;
 }
 
+string CWorker::JsonToString(Json::Value & Root)
+{
+	Json::StreamWriterBuilder builder;
+	std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
+	
+	ostringstream oStr;
+	writeInfo->write(Root, &oStr);
+	return  oStr.str();
+}
 
+void CWorker::SendWCZL()
+{
+	SendMsgTo("WCZL", "1");
+}
+const char TeachProgramDirect[][256] = {"../robotTeachHR/config/robotProgram/","../robotTeachABB/robotTeachABBFile/RobotProgram.xml"};
+string CWorker::GetDirectory(int nType)
+{
+	string strPath = BaseLib::GetModuleFullPath(TRUE);
+	if (nType > 2)
+	{
+		return "";
+	}
+	return strPath+TeachProgramDirect[nType];
+}
 void CWorker::SendFileTo(const char* label, string & strMsg)
 {
 	string filePath;
@@ -274,7 +312,7 @@ int CWorker::SendMsgTo(const char * label, string strMsg)
 		pag.allnum = time;
 		pag.content = strMsg.substr(i * PAGSIZE, length);
 
-		if (SendMsgTo(strMsg) < 0) {
+		if (send_package(pag) < 0) {
 			return -1;
 		}
 	}
@@ -308,6 +346,25 @@ int CWorker::send_package(PagTCP& pag) {
 	return 0;
 }
 
+string CWorker::GetExtension(int nType)
+{
+	string strExt;
+	switch (nType)
+	{
+	case 0:
+		strExt = EXT_HR;
+		break;
+	case 1:
+		strExt = EXT_ABB;
+		break;
+	case 2:
+		strExt = EXT_FANUC;
+		break;
+	default:
+		break;
+	}
+	return strExt;
+}
 int CWorker::SendMsgTo(string & strMsg)
 {
 	//bufferevent_write(m_bev, strMsg.c_str(), strMsg.length());
@@ -316,7 +373,6 @@ int CWorker::SendMsgTo(string & strMsg)
 void CWorker::setCMDFinishFlag(int flag) {
 	m_cmdFinishFlag = flag;
 	//sendWCZL(flag);
-	SendMsgTo("WCZL", "1");
 }
 
 int CWorker::waitCMDFinishFlag() {

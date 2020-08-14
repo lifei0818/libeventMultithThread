@@ -211,8 +211,8 @@ void /*LibEvtServer::*/conn_readcb(bufferevent *bev, void *arg)
 	msg[len] = '\0';
 	printf("server read the data %s\n", msg);
 
-	char reply[] = "I has read your data\0";
-	bufferevent_write(bev, msg, strlen(msg));
+	/*char reply[] = "I has read your data\0";
+	bufferevent_write(bev, msg, strlen(msg));*/
 
 	auto plt = (LibeventThread *)arg;
 	plt->data_map[bufferevent_getfd(bev)].Process(msg);

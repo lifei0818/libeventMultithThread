@@ -3,6 +3,7 @@
 #include <mysql.h>
 #include <iostream>
 #include <sstream>
+#include "dataStructure.h"
 
 using namespace std;
 
@@ -10,7 +11,7 @@ using namespace std;
 #define MYSQL_EXXECUTE 		1
 #define MYSQL_GETDATA		2
 
-class DataHelper
+class EXPORTDLL DataHelper
 {
 public:
 	DataHelper();
@@ -21,9 +22,12 @@ public:
 	int Display(std::string sqlstr, string& strRt);
 	bool IsExistData(string strsql);
 	void close();
+	BOOL IsConnect();
 private:
 	int initMysql();
 	MYSQL m_mydata;
+
+	BOOL m_bConnect;
 		
 };
 

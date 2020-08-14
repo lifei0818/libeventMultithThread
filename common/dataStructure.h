@@ -8,11 +8,26 @@
 #define EXPORTDLL __declspec(dllexport)
 
 #define FILE_DESCRIBE	"describe"
+#define FILE_NAME		"filename"
 #define FILE_PATH		"filepath"
+#define FILE_TYPE		"filetype"
 #define FILE_CLASS		"className"
 #define FILE_STUDENT	"studentName"
 #define FILE_COURES		"coures"
 #define FILE_CONTENT	"filecontent"
+#define FILE_TEMPLATE	"fileistemplate"
+
+#define DEVICE_NUMBER	"devicenumber"
+#define DEVICE_IP		"deviceip"
+
+
+#define FILE_LIST		"filelist"
+
+
+//0:HR 1:ABB 2:FANUC
+#define EXT_HR			".program"
+#define EXT_ABB			".abb"
+#define EXT_FANUC		".fanuc"
 
 enum TCPSOURCETYPE { TCPSOURCE_SERVER, TCPSOURCE_CLIENT, TCPSOURCE_OTHER, TCPSOURCE_UNDEFINE };
 enum TCPPACKAGETYPE { TCPPACKAGE_MSG, TCPPACKAGE_FILE };

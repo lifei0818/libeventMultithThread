@@ -2,6 +2,7 @@
 #include "DataHelper.h"
 
 DataHelper::DataHelper()
+	:m_bConnect(FALSE)
 {
 	//初始化
 	if (0 == mysql_library_init(0, NULL, NULL)) {
@@ -41,6 +42,10 @@ int DataHelper::initMysql()
 
 int DataHelper::Connect()
 {
+	if (IsConnect())
+	{
+		return 0;
+	}
 	string strPath =  BaseLib::GetModuleFullPath(true);
 	BaseLib::CIniFile iniFile((strPath + "\\config.ini").c_str());
 	string strIp = iniFile.ReadString("Database", "ipaddr", "127.0.0.1");
@@ -60,12 +65,17 @@ int DataHelper::Connect()
 		mysql_close(&m_mydata);
 		return -1;
 	}
+	m_bConnect = TRUE;
 	return 0;
 }
 
 
 int DataHelper::excuteSql(std::string sqlstr)
 {
+	if (!IsConnect())
+	{
+		Connect();
+	}
 	if (0 == mysql_query(&m_mydata, sqlstr.c_str())) {
 		cout << "mysql_query() drop table succeed" << endl;
 	}
@@ -79,6 +89,10 @@ int DataHelper::excuteSql(std::string sqlstr)
 
 
 int DataHelper::Display(std::string sqlstr, string& strRt) {
+	if (!IsConnect())
+	{
+		Connect();
+	}
 	MYSQL_RES *result = NULL;
 	stringstream sstream;
 	if (0 == mysql_query(&m_mydata, sqlstr.c_str())) {
@@ -133,5 +147,13 @@ bool DataHelper::IsExistData(string strsql)
 
 void DataHelper::close()
 {
+
+	m_bConnect = FALSE;
 	mysql_close(&m_mydata);
+}
+
+
+BOOL DataHelper::IsConnect()
+{
+	return m_bConnect;
 }

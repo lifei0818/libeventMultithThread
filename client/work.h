@@ -21,23 +21,35 @@ public:
 	void excuteCommand(std::string& command, std::string& content);
 	void excuteFile(string command, Json::Value& describeJson);
 private:
-	void excuteFile(TCPSOURCETYPE src, string command);
 	void initParameter();
 	int SendToServer(string& strMsg);
 
 	//int send_package(PagTCP& pag);
-	enum FILE_TYPE_VALUE { CSWJ, MLWJ, PZWJ, ZBWJ, DWWJ };
+	enum FILE_TYPE_VALUE { CXWJ };
 	enum COMMAND_TYPE_VALUE {
-		WCZL, MSQL, 
+		WCZL, MSQL, WJLB,
 		TEST
 	};
 	/////////////////////////////////////////////////////////////////////////
-	void CommonTEST(string& strContent );
-	void CommonWCZL(string& strContent);
-	void CommonMSQL(string& strContent);
+	void CommanTEST(string& strContent );
+	void CommanWCZL(string& strContent);
+	void CommanMSQL(string& strContent);
+	void CommanWJLB(string& strContent);
+
+
+	void CommanCXWJ(Json::Value& describeJson);
+public:
 	/////////////////////////////////////////////////////////////////////////
-	void SendMSQL(string strsql);
+	void SendMSQL(string strsql);		//访问数据库
+	void SendXZWJ(string strsql);		//下载文件
+	void SendWJLB(string strMsg);		//获取文件列表
+	//string GetServerResult();			//获取服务端返回数据
+	
+	string GetFileList();				
+
 private:
 	std::map<std::string, FILE_TYPE_VALUE> m_fileType;
 	std::map<std::string, COMMAND_TYPE_VALUE> m_commandType;
+
+	string m_strFileList;				//服务端返回的文件列表
 };

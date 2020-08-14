@@ -48,15 +48,15 @@ int StudentManager::Device(string& strDevice, int op )
 			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
 		}
 		else if (2 == op) {
-			if (!device["ipaddr"].isNull())
+			if (!device["ipaddr"].isNull()&&!strIP.empty())
 			{
 				strsql = "select * from devices where ipaddr='" + strIP + "';";
 			}
-			else if (!device["deviceNumber"].isNull())
+			else if (!device["deviceNumber"].isNull()&&!strNumber.empty())
 			{
 				strsql = "select * from devices where deviceNumber='" + strNumber + "';";
 			}
-			else if (!device["type"].isNull())
+			else if (!device["type"].isNull()&&type>=0)
 			{
 				char buff[128] = { 0 };
 				sprintf(buff,"select * from devices where type='%d';",type);
@@ -192,17 +192,22 @@ int StudentManager::UpFile(string& strClass, int op)
 	string err;
 	int nLen = strClass.length();
 	if (readInfo->parse(strClass.c_str(), strClass.c_str() + nLen, &upfile, &err)) {
-		string strFileName = upfile["fileName"].asString();
-		string strStudentName = upfile["studentName"].asString();
-		string strClassName = upfile["className"].asString();
-		string strPath = upfile["path"].asString();
-		string strDeviceNumber = upfile["deviceNumber"].asString();
-		string strCourse = upfile["course"].asString();
-		int nType = upfile["type"].asInt();
+		string strFileName = upfile[FILE_NAME].asString();
+		string strStudentName = upfile[FILE_STUDENT].asString();
+		string strClassName = upfile[FILE_CLASS].asString();
+		string strPath = upfile[FILE_PATH].asString();
+		string strDeviceNumber = upfile[DEVICE_NUMBER].asString();
+		string strCourse = upfile[FILE_COURES].asString();
+		int nType = upfile[FILE_TYPE].asInt();
 		ostringstream oStr;
 		string strsql;
 		if (op == 0)
 		{
+			if (!BaseLib::IsFileExist(strPath.c_str()))
+			{
+				return 0;
+			}
+			BaseLib::StringReplaceAll(strPath, "\\", "\\\\");
 			strsql = "insert into upfile(fileName,studentName,className,path,deviceNumber,course,type,time) values(";
 			strsql += "'" + strFileName +"',";
 			strsql += "'" + strStudentName +"',";
@@ -311,10 +316,10 @@ int StudentManager::DownFile(string& strClass, int op)
 int StudentManager::GetFiles(const string & strClass, const string & strStudent, string & strOut)
 {
 	int nRt = -1;
-	string strSql("select fileName, path from upfile where ");
+	string strSql("select fileName, path, 1 from upfile where ");
 	strSql += "className='" + strClass + "' and studentName='"+ strStudent + "'";;
 	strSql += " union ";
-	strSql += " select fileName, path from downfile where access REGEXP '"+strClass+"';";
+	strSql += " select fileName, path, 2 from downfile where access REGEXP '"+strClass+"';";
 	nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strSql, strOut);
 	return nRt;
 }

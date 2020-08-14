@@ -4,6 +4,7 @@
 #include <string>
 #include "../common/function.h"
 #include "../common/dataStructure.h"
+#include "StudentManager.h"
 using namespace std;
 
 class CServerWorker
@@ -22,16 +23,22 @@ private:
 
 	enum FILE_TYPE_VALUE { CXWJ};
 	enum COMMAND_TYPE_VALUE {
-		WCZL, MSQL, 
+		WCZL, MSQL, WJLB,XZWJ,
 		TEST
 	};
 
-	void CommonCXWJ(Json::Value& strContent);
+	void CommanCXWJ(Json::Value& strContent);	//程序文件
 
-	void CommonTEST(string& strContent );
-	void CommonWCZL(string& strContent);
-	void CommonMSQL(string& strContent);
+	void CommanTEST(string& strContent );
+	void CommanWCZL(string& strContent);	
+	void CommanMSQL(string& strContent);
+	void CommanXZWJ(string& strContent);	//下载文件
+	void CommanWJLB(string& strContent);	//文件列表
+public:
+	void SendCXWJ(string& strContent);
 private:
 	std::map<std::string, FILE_TYPE_VALUE> m_fileType;
 	std::map<std::string, COMMAND_TYPE_VALUE> m_commandType;
+
+	std::shared_ptr < StudentManager > m_spStudentMan;
 };
