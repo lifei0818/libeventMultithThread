@@ -100,7 +100,7 @@ void CServerWorker::CommanXZWJ(string& strContent)
 		}
 	}
 
-	SendWCZL();
+	//SendWCZL();
 }
 
 void CServerWorker::CommanWJLB(string & strContent)
