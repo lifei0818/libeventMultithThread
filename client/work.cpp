@@ -70,7 +70,8 @@ void CClientWorker::CommanCXWJ(Json::Value& describeJson)
 	//将文件剪切到示教器目录下
 	int nType = describeJson[FILE_TYPE].asInt();
 	string strSrc = describeJson[FILE_PATH].asString();
-    string strDir = GetDirectory(nType);
+    string strName = describeJson[FILE_NAME].asString();
+    string strDir = GetDirectory(nType,strName);
 	
 	BOOL bRt = BaseLib::CxxCopyFile(strSrc.c_str(), strDir.c_str(),FALSE);
 	if(!bRt)
