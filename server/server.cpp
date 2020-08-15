@@ -3,10 +3,30 @@
 int LibEvtServer::m_last_thread = -1;
 std::vector<LibeventThread*> LibEvtServer::m_libevent_threads;
 
+LibEvtServer::LibEvtServer()
+{
+	init();
+}
+
+LibEvtServer::~LibEvtServer()
+{
+}
+
 bool LibEvtServer::init()
 {
 	////event支持windows下线程的函数
-	//int hr = evthread_use_windows_threads();
+#ifdef WIN32
+	evthread_use_windows_threads();
+	WinSockInit();
+#else
+	evthread_use_pthreads();
+#endif // WIN32
+
+	//替换记录日志的默认函数
+	event_enable_debug_mode();
+	event_enable_debug_logging(EVENT_DBG_ALL);
+	event_set_log_callback(log_callback);
+
 	m_base = event_base_new();
 	if (!m_base) {
 		fprintf(stderr, "Could not initialize libevent!\n");
@@ -17,6 +37,10 @@ bool LibEvtServer::init()
 	//初始化线程
 	init_threads(THREAD_NUMB);
 #endif
+	string strPath = BaseLib::GetModuleFullPath(true) + PATH_SEP_STRING;
+	BaseLib::CIniFile iniFile((strPath + "config.ini").c_str());
+	int port = iniFile.ReadInteger("Server", "port", 8888);
+	listen(&port);
 	return true;
 }
 

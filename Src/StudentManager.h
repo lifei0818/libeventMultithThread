@@ -35,6 +35,7 @@ public:
 	int GetFiles(const string& strClass, const string& strStudent, string& strOut);
 
 	int excuteSql(string& strSql);
+	int excuteSql(string& strSql,string& strOut);
 
 };
 

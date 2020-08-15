@@ -41,6 +41,8 @@ class EXPORTDLL LibEvtServer
 	:public BaseLib::ISingleton<LibEvtServer>
 {
 public:
+	LibEvtServer();
+	~LibEvtServer();
 	bool init();
 	bool init_threads(int thread_numb);
 	void setup_libevent_thread(LibeventThread * pLibeventThread);

@@ -367,7 +367,15 @@ int StudentManager::DownFile(string& strClass, int op)
 		}
 		else if (op == 1)
 		{
-			strsql = "delete from downfile where path='" + strPath + "';";
+			if (strFileName.empty())
+			{
+				strsql = "delete from downfile where path='" + strPath + "';";
+			}
+			else
+			{
+				strsql = "delete from downfile where path='" + strFileName + "';";
+
+			}
 			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
 		}
 		else if (op == 2)
@@ -435,7 +443,14 @@ int StudentManager::GetFiles(const string & strClass, const string & strStudent,
 int StudentManager::excuteSql(string & strSql)
 {
 	int nRt = -1;
-	nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strSql, strSql);
+	nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strSql);
+	return nRt;
+}
+
+int StudentManager::excuteSql(string & strSql, string& strOut)
+{
+	int nRt = -1;
+	nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strSql, strOut);
 	return nRt;
 }
 
