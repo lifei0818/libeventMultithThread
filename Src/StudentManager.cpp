@@ -25,27 +25,46 @@ int StudentManager::Device(string& strDevice, int op )
 		string strIP,strNumber;
 		strIP = device["ipaddr"].asString();
 		strNumber = device["deviceNumber"].asString();
-		int type = device["type"].asInt();
-		//device[]
+		int type = -1;
+		if(!device["type"].isNull())
+			type = device["type"].asInt();
+		int number = -1;
+		if(device["number"].isNull())
+			number = device["number"].asInt();
 
 		string strsql = "select deviceNumber,ipaddr from devices where ipaddr='";
-		strsql += strIP;
-		strsql += "' or deviceNumber='";
-		strsql += strNumber + "';";
+		//strsql += strIP;
+		//strsql += "' or deviceNumber='";
+		//strsql += strNumber + "';";
+		do {
 
-		bool bRt = BaseLib::TSingleton<DataHelper>::Instance()->IsExistData(strsql);
-		if ((op==0)&&!bRt)
+		if (op==0)
 		{
+			strsql = "select deviceNumber,ipaddr from devices where ipaddr='";
+			strsql += strIP;
+			strsql += "' or deviceNumber='";
+			strsql += strNumber + "';";
+			bool bRt = BaseLib::TSingleton<DataHelper>::Instance()->IsExistData(strsql);
+			if (bRt)
+			{
+				nRt = -1;
+				break;
+			}
 			strsql = "insert into devices(ipaddr,deviceNumber,type) values()";
 			char buff[128];
 			sprintf(buff, "insert into devices(ipaddr,deviceNumber,type) values('%s','%s',%d)",strIP.c_str(),strNumber.c_str(),type );
 			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(buff);
 		}
-		else if ((op == 1) &&bRt ) {
-			strsql = "delete from devices where ipaddr='" + strIP + "';";
-			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
-			strsql = "delete from devices where ipaddr='" + strNumber + "';";
-			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
+		else if (op == 1) {
+			if (!strIP.empty())
+			{
+				strsql = "delete from devices where ipaddr='" + strIP + "';";
+				nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
+			}
+			else if(!strNumber.empty()){
+				strsql = "delete from devices where deviceNumber='" + strNumber + "';";
+				nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
+			}
 		}
 		else if (2 == op) {
 			if (!device["ipaddr"].isNull()&&!strIP.empty())
@@ -67,6 +86,29 @@ int StudentManager::Device(string& strDevice, int op )
 			}
 			nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strsql, strDevice);
 		}
+		else if (op == 3||!strDevice.empty())
+		{
+			ostringstream oStr;
+			oStr << "update devices set";
+			if (!strIP.empty())
+			{
+				oStr << " ipaddr='"+strIP << "'";
+			}
+			if (type >= 0)
+			{
+				oStr << ", type=" << type ;
+			}
+			if (number >= 0)
+			{
+				oStr << ", numble=" << number ;
+			}
+			oStr << " where deviceNumber='" << strNumber << "';";
+			strsql = oStr.str();
+			BaseLib::StringReplaceAll(strsql,"set,","set ");
+			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
+		}
+
+		} while (false);
 	}
 	return nRt;
 }
@@ -85,19 +127,25 @@ int StudentManager::Student(string& strStudent, int op)
 		string strClassName = student["className"].asString();
 		string strDeviceIP = student["deviceIP"].asString();
 		string strDeviceNumber = student["deviceNumber"].asString();
-		if (strDeviceIP.empty() && strDeviceIP.empty())
-		{
-			nRt = -1;
-		}
-		else
+		
+		do
 		{
 			string strsql("select className,name from studentinfo where class='");
 			char buff[128] = {0};
 			sprintf(buff,"select className, name from studentinfo where className = '%s' and name='%s';",strClassName.c_str(),strName.c_str());
 			///该生是否存在
-			int bRt = BaseLib::TSingleton<DataHelper>::Instance()->IsExistData(buff);
+			int bRt=0;
+			if (2 != op)
+			{
+				bRt= BaseLib::TSingleton<DataHelper>::Instance()->IsExistData(buff);
+			}
 			if (!bRt&&op==0)
 			{
+				if (strDeviceIP.empty() && strDeviceIP.empty())
+				{
+					nRt = -1;
+					break;
+				}
 				memset(buff,0,sizeof(buff));
 				sprintf(buff, "insert into studentinfo (name,className,deviceNumber,deviceIP) \
 					values('%s','%s','%s','%s');",strName.c_str(), strClassName.c_str(), strDeviceNumber.c_str(), strDeviceIP.c_str());
@@ -144,7 +192,24 @@ int StudentManager::Student(string& strStudent, int op)
 				}
 				nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strsql, strStudent);
 			}
-		}
+			else if (op == 3)
+			{
+				ostringstream oStr;
+				oStr << "update studentinfo set";
+				if (!strDeviceNumber.empty())
+				{
+					oStr << " deviceNumber='" << strDeviceNumber << "'";
+				}
+				if (!strDeviceIP.empty())
+				{
+					oStr << ", deviceIP='" << strDeviceIP << "'";
+				}
+				oStr << " where className='" << strClassName << "' and name='" << strName << "';";
+				strsql = oStr.str();
+				BaseLib::StringReplaceAll(strsql, "set,", "set ");
+				nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
+			}
+		} while (false);
 	}
 	return nRt;
 }
@@ -159,10 +224,16 @@ int StudentManager::Class(string& strClass, int op)
 	string err;
 	int nLen = strClass.length();
 	if (readInfo->parse(strClass.c_str(), strClass.c_str() + nLen, &classJs, &err)) {
+		bool bRt=true;
+		string strsql;
 		string strName = classJs["name"].asString();
-		string strsql("select * from class where name='");
-		strsql += strName + "';";
-		bool bRt = BaseLib::TSingleton<DataHelper>::Instance()->IsExistData(strsql);
+		if (!strName.empty())
+		{
+			strsql=("select * from class where name='");
+			strsql += strName + "';";
+			bRt = BaseLib::TSingleton<DataHelper>::Instance()->IsExistData(strsql);
+
+		}
 		if (!bRt&&op==0)
 		{
 			strsql = "insert into class(name) values('" + strName + "');";
@@ -177,6 +248,13 @@ int StudentManager::Class(string& strClass, int op)
 		{
 			strsql = "select * from class;";
 			nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strsql, strClass);
+		}
+		else if (3 == op)
+		{
+			string strNewName = classJs["newName"].asString();
+			string strOldName = classJs["oldName"].asString();
+			strsql = "update class set name='" + strNewName + "' where name='" + strOldName + "';";
+			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
 		}
 	}
 	return nRt;
@@ -269,7 +347,11 @@ int StudentManager::DownFile(string& strClass, int op)
 		string strFileName = downfile["fileName"].asString();
 		string strPath = downfile["path"].asString();
 		string strAccess = downfile["access"].asString();
-		int nType = downfile["type"].asInt();
+		int nType = -1;
+		if (!downfile["type"].isNull())
+		{
+			nType = downfile["type"].asInt();
+		}
 		string strCourse = downfile["course"].asString();
 		ostringstream oStr;
 		string strsql;
@@ -309,6 +391,32 @@ int StudentManager::DownFile(string& strClass, int op)
 			}
 			nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strsql, strClass);
 		}
+		else if (op == 3)
+		{
+			oStr.str("");
+			oStr  << "update downfile set";
+			if (!strAccess.empty())
+			{
+				oStr << " access='" << strAccess << "'";
+			}
+			if (!strCourse.empty())
+			{
+				oStr << ", course='" << strCourse << "'";
+			}
+			if (nType>=0)
+			{
+				oStr << ", type=" << nType << "";
+			}
+			if (!strPath.empty())
+			{
+				oStr << ", path='" << strPath << "'";
+			}
+			oStr << ", time=now() where fileName='"<< strFileName<<"';";
+			strsql = oStr.str();
+			BaseLib::StringReplaceAll(strsql, "set,", "set ");
+			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
+		}
+
 	}
 	return nRt;
 }

@@ -14,7 +14,7 @@ public:
 	//"deviceNumber" : "T120_10",
 	//"type" : 0	0:T120 ,1:18A
 	//}
-	//op:0:add 1:del 2.view(out strDevice)
+	//op:0:add 1:del 2.view(out strDevice)3.modify
 	//return :Ê§°Ü<0
 	int Device(string& strDevice, int op= 0);
 	
