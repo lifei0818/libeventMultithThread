@@ -101,8 +101,8 @@ int LibEvtClient::InitSystem(std::string & strIP, int nPort)
 		GetFileList("class1","zhangsan",strFileList);
 		cout << "file list:"<<endl << strFileList << endl;
         BaseLib::OS::sleep(1);
-		UpperFile("class2", "life", "lesson6", "config.ini" , "c:\\config.ini","T120_10", 1);
-		BaseLib::OS::sleep(1);
+        //UpperFile("class2", "life", "lesson6", "config.ini" , "c:\\config.ini","T120_10", 1);
+        //BaseLib::OS::sleep(1);
 		DownloadFile("c:\\config.ini", "lesson6", 1, 0);
 		BaseLib::OS::sleep(1);
 //		Json::StreamWriterBuilder builder;
@@ -138,19 +138,32 @@ void LibEvtClient::UpperFile(string strClass, string strStudent, string strCoure
 	root[FILE_DESCRIBE][FILE_TYPE] = nType;
 	root[FILE_DESCRIBE][DEVICE_NUMBER] = strDeviceNum;
 	ostringstream oStr;
-	writeInfo->write(root, &oStr);
+    writeInfo->write(root, &oStr);
 	SendFileToServer(oStr.str());
     BaseLib::OS::sleep(1);
 }
 
 void LibEvtClient::DownloadFile(string strPath, string strCoures, int nType, int nTemplate)
 {
+    string strFileName;
+    int npos = strPath.find_last_of("\\");
+    if(npos!=strPath.npos)
+    {
+        strFileName=strPath.substr(npos+1);
+    }else
+    {
+        npos = strPath.find_last_of("/");
+        if(npos!=strPath.npos)
+        {
+            strFileName=strPath.substr(npos+1);
+        }
+    }
 	Json::StreamWriterBuilder builder;
 	builder.settings_["indentation"] = "";
 	std::unique_ptr<Json::StreamWriter> writeInfo(builder.newStreamWriter());
 	Json::Value root;
-	//root[FILE_DESCRIBE][FILE_CLASS] = strClass;
-	//root[FILE_DESCRIBE][FILE_STUDENT] = strStudent;
+    root[FILE_DESCRIBE][FILE_CLASS] = "Class";
+    root[FILE_DESCRIBE][FILE_NAME] = strFileName;
 	root[FILE_DESCRIBE][FILE_COURES] = strCoures;
 	root[FILE_DESCRIBE][FILE_PATH] = strPath;
 	root[FILE_DESCRIBE][FILE_TYPE] = nType;

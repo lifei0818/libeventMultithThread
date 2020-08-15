@@ -99,7 +99,8 @@ void CWorker::Process(string strData)
 				excuteCommand(new_package.label, m_strMsgContent);
 				m_strMsgContent.clear();
 			}
-			else if (new_package.type == TCPPACKAGE_FILE) {
+            else if (new_package.type == TCPPACKAGE_FILE) {
+
 				string strPath;
 				string strContent;
 				Json::Value fileJS;
@@ -122,9 +123,13 @@ void CWorker::Process(string strData)
 #endif // __SERVER
 					fileJS[FILE_DESCRIBE][FILE_PATH] = strPath;
 
+                    if (new_package.num ==1&& BaseLib::IsFileExist(strPath.c_str())) {
+                        BaseLib::CxxDeleteFile(strPath.c_str());
+                    }
 					if (!out.is_open()) {
 						out.open(strPath.c_str(), ios::binary | ios::app);
 						if (!out) {
+                            setCMDFinishFlag(1);
 							DBGPRINT(DBG_CLIENT_RECV, "Open File failed");
 							break;
 						}
@@ -228,13 +233,18 @@ void CWorker::SendWCZL()
 	SendMsgTo("WCZL", "1");
 }
 const char TeachProgramDirect[][256] = {"../robotTeachHR/config/robotProgram/","../robotTeachABB/robotTeachABBFile/RobotProgram.xml"};
-string CWorker::GetDirectory(int nType)
+string CWorker::GetDirectory(int nType,string strFileName)
 {
-	string strPath = BaseLib::GetModuleFullPath(TRUE);
+    string strPath = BaseLib::GetModuleFullPath(TRUE)+PATH_SEP_STRING;
 	if (nType > 2)
 	{
 		return "";
 	}
+    if(nType==0)
+    {
+        strPath+=TeachProgramDirect[nType];
+        return strPath+strFileName;
+    }
 	return strPath+TeachProgramDirect[nType];
 }
 void CWorker::SendFileTo(const char* label, string & strMsg)

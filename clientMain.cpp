@@ -3,6 +3,8 @@
 #include "common/function.h"
 int main()
 {
+    BaseLib::InitBaseLib();
+    INIT_DBG_CODE
 	//evthread_use_pthreads();
 	event_enable_debug_mode();
 	//替换记录日志的默认函数

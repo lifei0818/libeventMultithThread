@@ -70,7 +70,7 @@ void CClientWorker::CommanCXWJ(Json::Value& describeJson)
 	//将文件剪切到示教器目录下
 	int nType = describeJson[FILE_TYPE].asInt();
 	string strSrc = describeJson[FILE_PATH].asString();
-	string strDir = GetDirectory(nType)+PATH_SEP_STRING;
+    string strDir = GetDirectory(nType);
 	
 	BOOL bRt = BaseLib::CxxCopyFile(strSrc.c_str(), strDir.c_str(),FALSE);
 	if(!bRt)
@@ -89,9 +89,7 @@ void CClientWorker::SendMSQL(string strsql)
 
 void CClientWorker::SendXZWJ(string strsql)
 {
-	setCMDFinishFlag(-1);
-	SendMsgTo("XZWJ", strsql);
-	waitCMDFinishFlag();
+    SendMsgTo("XZWJ", strsql);
 }
 
 void CClientWorker::SendWJLB(string strMsg)

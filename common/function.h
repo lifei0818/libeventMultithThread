@@ -39,7 +39,7 @@ protected:
 	bool StringToJson(string & strSoure, Json::Value & Root);
 	string JsonToString(Json::Value & Root);
 	void SendWCZL();
-	string GetDirectory(int nType);
+    string GetDirectory(int nType,string strFileName);
 private:
 	bool GetPackage(PagTCP& new_package);
 	int send_package(PagTCP& pag);

@@ -20,7 +20,7 @@ public:
 	//上传文件
 	void UpperFile(string strClass, string strStudent, string strCoures, string strFileName,string strFilePath, string strDeviceNum,int nType);
 	//下载文件，路径为教师端路径，从数据库里查到的。nTemplate 1
-	void DownloadFile(string strPath, string strCoures, int nType, int nTemplate);
+    void DownloadFile(string strPath, string strCoures, int nType, int nTemplate);
 
 	void GetFileList(string strClass, string strStudent, string& strOut);
 private:

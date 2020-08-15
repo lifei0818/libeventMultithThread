@@ -34,7 +34,7 @@ aux_source_directory(server DIR_SERVER)
 
 option (DATAHELPER "compile DateHelper" OFF)
 option (CLIENT "compile client" ON)
-option (SERVER "compile server" ON)
+option (SERVER "compile server" OFF)
 
 IF(DATAHELPER)
 add_executable(DataHelper main.cpp ${DIR_SRCS} ${DIR_COMMON})
