@@ -122,7 +122,7 @@ void CServerWorker::CommanWJLB(string & strContent)
 
 void CServerWorker::CommanSBBH(string& strContent){
     //Device(string& strDevice, int op= 0);
-    string str("{\"ipaddr\":\"\",\"deviceNumber\" : \"");
+    string str("{\"deviceNumber\":\"\", \"ipaddr\": \"");
     str += strContent + "\"}";
     m_spStudentMan->Device(str,2);
     SendMsgTo("SBBH",str);

@@ -10,6 +10,8 @@ LibEvtServer::LibEvtServer()
 
 LibEvtServer::~LibEvtServer()
 {
+	evconnlistener_free(m_listener);
+	event_base_free(m_base);
 }
 
 bool LibEvtServer::init()

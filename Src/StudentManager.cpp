@@ -373,7 +373,7 @@ int StudentManager::DownFile(string& strClass, int op)
 			}
 			else
 			{
-				strsql = "delete from downfile where path='" + strFileName + "';";
+				strsql = "delete from downfile where fileName='" + strFileName + "';";
 
 			}
 			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
@@ -432,10 +432,10 @@ int StudentManager::DownFile(string& strClass, int op)
 int StudentManager::GetFiles(const string & strClass, const string & strStudent, string & strOut)
 {
 	int nRt = -1;
-	string strSql("select fileName, path, 1 from upfile where ");
+	string strSql("select fileName, path,type,course, 1 from upfile where ");
 	strSql += "className='" + strClass + "' and studentName='"+ strStudent + "'";;
 	strSql += " union ";
-	strSql += " select fileName, path, 2 from downfile where access REGEXP '"+strClass+"';";
+	strSql += " select fileName, path,type,course, 2 from downfile where access REGEXP '"+strClass+"';";
 	nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strSql, strOut);
 	return nRt;
 }
