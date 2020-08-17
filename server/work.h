@@ -23,7 +23,7 @@ private:
 
 	enum FILE_TYPE_VALUE { CXWJ};
 	enum COMMAND_TYPE_VALUE {
-		WCZL, MSQL, WJLB,XZWJ,
+        WCZL, MSQL, WJLB,XZWJ,SBBH,
 		TEST
 	};
 
@@ -34,6 +34,7 @@ private:
 	void CommanMSQL(string& strContent);
 	void CommanXZWJ(string& strContent);	//下载文件
 	void CommanWJLB(string& strContent);	//文件列表
+    void CommanSBBH(string& strContent);	//设备编号
 public:
 	void SendCXWJ(string& strContent);
 private:

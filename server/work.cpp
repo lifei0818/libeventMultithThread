@@ -20,7 +20,8 @@ void CServerWorker::excuteCommand(std::string& command, std::string& content)
 	case WCZL: CommanWCZL(content); break;
 	case MSQL: CommanMSQL(content); break;
 	case WJLB: CommanWJLB( content); break; 
-	case XZWJ: CommanXZWJ(content); break;
+    case XZWJ: CommanXZWJ(content); break;
+    case SBBH: CommanSBBH(content); break;
 	case TEST: CommanTEST(content); break;
 	default:break;
 	}
@@ -48,6 +49,7 @@ void CServerWorker::initParameter()
 	m_commandType["WCZL"] = WCZL;
 	m_commandType["MSQL"] = MSQL;
 	m_commandType["XZWJ"] = XZWJ;
+    m_commandType["SBBH"] = SBBH;
 
 	m_commandType["WJLB"] = WJLB;
 }
@@ -117,6 +119,14 @@ void CServerWorker::CommanWJLB(string & strContent)
 	}
 }
 
+
+void CServerWorker::CommanSBBH(string& strContent){
+    //Device(string& strDevice, int op= 0);
+    string str("{\"ipaddr\":\"\",\"deviceNumber\" : \"");
+    str += strContent + "\"}";
+    m_spStudentMan->Device(str,2);
+    SendMsgTo("SBBH",str);
+}
 
 void CServerWorker::SendCXWJ(string& strContent)
 {

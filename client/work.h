@@ -27,7 +27,7 @@ private:
 	//int send_package(PagTCP& pag);
 	enum FILE_TYPE_VALUE { CXWJ };
 	enum COMMAND_TYPE_VALUE {
-		WCZL, MSQL, WJLB,
+        WCZL, MSQL, WJLB, SBBH,
 		TEST
 	};
 	/////////////////////////////////////////////////////////////////////////
@@ -35,6 +35,7 @@ private:
 	void CommanWCZL(string& strContent);
 	void CommanMSQL(string& strContent);
 	void CommanWJLB(string& strContent);
+    void CommanSBBH(string& strContent);
 
 
 	void CommanCXWJ(Json::Value& describeJson);
@@ -43,13 +44,16 @@ public:
 	void SendMSQL(string strsql);		//访问数据库
 	void SendXZWJ(string strsql);		//下载文件
 	void SendWJLB(string strMsg);		//获取文件列表
+    void SendSBBH(string strMsg);		//获取设备编号
 	//string GetServerResult();			//获取服务端返回数据
 	
-	string GetFileList();				
+    string GetFileList();
+    string GetDeviceNumber();
 
 private:
 	std::map<std::string, FILE_TYPE_VALUE> m_fileType;
 	std::map<std::string, COMMAND_TYPE_VALUE> m_commandType;
 
 	string m_strFileList;				//服务端返回的文件列表
+    string m_strDeviceNum;
 };

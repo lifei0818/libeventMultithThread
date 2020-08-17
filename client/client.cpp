@@ -192,6 +192,15 @@ void LibEvtClient::GetFileList(string strClass, string strStudent, string& strOu
 	strOut = m_spWorker->GetFileList();
 }
 
+
+string LibEvtClient::GetDeviceNum(string strIP)
+{
+    m_spWorker->setCMDFinishFlag(-1);
+    m_spWorker->SendSBBH(strIP);
+    m_spWorker->waitCMDFinishFlag();
+    return m_spWorker->GetDeviceNumber();
+}
+
 void LibEvtClient::server_msg_cb(struct bufferevent* bev, void* arg)
 {
 	char msg[1024];

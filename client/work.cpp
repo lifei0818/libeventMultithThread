@@ -15,6 +15,7 @@ void CClientWorker::excuteCommand(std::string& command, std::string& content)
 	case WCZL: CommanWCZL( content); break;
 	case MSQL: CommanMSQL(content); break;
 	case WJLB: CommanWJLB(content); break;
+    case SBBH: CommanSBBH(content); break;
 	default:break;
 	}
 }
@@ -34,6 +35,7 @@ void CClientWorker::initParameter()
 	m_commandType["WCZL"] = WCZL;
 	m_commandType["MSQL"] = MSQL;
 	m_commandType["WJLB"] = WJLB;
+    m_commandType["SBBH"] = SBBH;
 }
 
 int CClientWorker::SendToServer(string & strMsg)
@@ -56,6 +58,7 @@ void CClientWorker::CommanMSQL(string & strContent)
 	//存储服务端sql返回的数据
 
 }
+
 void CClientWorker::CommanWJLB(string & strContent)
 {
 	Json::Value fileListJs;
@@ -65,6 +68,14 @@ void CClientWorker::CommanWJLB(string & strContent)
 	}
 	setCMDFinishFlag(1);
 }
+
+
+void CClientWorker::CommanSBBH(string& strContent)
+{
+    m_strDeviceNum = strContent;
+    setCMDFinishFlag(1);
+}
+
 void CClientWorker::CommanCXWJ(Json::Value& describeJson)
 {
 	//将文件剪切到示教器目录下
@@ -98,7 +109,18 @@ void CClientWorker::SendWJLB(string strMsg)
 	SendMsgTo("WJLB", strMsg);
 }
 
+
+void CClientWorker::SendSBBH(string strIP)
+{
+    SendMsgTo("SBBH", strIP);
+}
+
 string CClientWorker::GetFileList()
 {
 	return m_strFileList;
+}
+
+string CClientWorker::GetDeviceNumber()
+{
+    return m_strDeviceNum;
 }

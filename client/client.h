@@ -23,6 +23,7 @@ public:
     void DownloadFile(string strPath, string strCoures, int nType, int nTemplate);
 
 	void GetFileList(string strClass, string strStudent, string& strOut);
+    string GetDeviceNum(string strIP);
 private:
 	static void server_msg_cb(struct bufferevent* bev, void* arg);
 	static void event_cb(struct bufferevent *bev, short event, void *arg);
