@@ -27,6 +27,8 @@ public:
 	~CWorker() {}
 	void Process(string strDate) ;		//处理socket接收到的内容
 	void SetBev(bufferevent * bev);		//设置socket事件指针
+	void SetIP(string& strIP);		//设置socket事件指针
+	string GetIP();
 	void SendFileTo(const char* label, string & strMsg);	//格式发送文件
 	int SendMsgTo(const char* label, string strMsg);		//格式发送消息
 	int SendMsgTo(string & strMsg);							//无格式发送消息
@@ -35,9 +37,9 @@ public:
 
 	virtual void excuteCommand(std::string& command, std::string& content) = 0;	//处理具体的指令
 	virtual void excuteFile(string command, Json::Value& describeJson) = 0;
+	static bool StringToJson(string & strSoure, Json::Value & Root);
+	static string JsonToString(Json::Value & Root);
 protected:
-	bool StringToJson(string & strSoure, Json::Value & Root);
-	string JsonToString(Json::Value & Root);
 	void SendWCZL();
     string GetDirectory(int nType,string strFileName);
 private:
@@ -52,4 +54,5 @@ protected:
 	bufferevent * m_bev;	//socket事件
 	string m_strData;	    //保存包数据
 	string m_strMsgContent;	//保存消息信息
+	string m_strIP;
 };

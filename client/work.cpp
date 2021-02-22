@@ -16,6 +16,7 @@ void CClientWorker::excuteCommand(std::string& command, std::string& content)
 	case MSQL: CommanMSQL(content); break;
 	case WJLB: CommanWJLB(content); break;
     case SBBH: CommanSBBH(content); break;
+	case SKBJ: CommanSKBJ(content); break;
 	default:break;
 	}
 }
@@ -35,7 +36,8 @@ void CClientWorker::initParameter()
 	m_commandType["WCZL"] = WCZL;
 	m_commandType["MSQL"] = MSQL;
 	m_commandType["WJLB"] = WJLB;
-    m_commandType["SBBH"] = SBBH;
+    m_commandType["SBBH"] = SBBH; 
+	m_commandType["SKBJ"] = SKBJ;
 }
 
 int CClientWorker::SendToServer(string & strMsg)
@@ -76,6 +78,18 @@ void CClientWorker::CommanSBBH(string& strContent)
     setCMDFinishFlag(1);
 }
 
+
+void CClientWorker::CommanSKBJ(string& strContent)
+{
+	Json::Value js;
+	if (StringToJson(strContent, js))
+	{
+		m_strClass = js[FILE_CLASS].asString();
+		m_strCourse = js[FILE_COURES].asString();
+		m_strClassInfo = js[CLASS_INFO].asString();
+	}
+}
+
 void CClientWorker::CommanCXWJ(Json::Value& describeJson)
 {
 	//将文件剪切到示教器目录下
@@ -92,27 +106,29 @@ void CClientWorker::CommanCXWJ(Json::Value& describeJson)
 	setCMDFinishFlag(1);
 }
 
-void CClientWorker::SendMSQL(string strsql)
+int CClientWorker::SendMSQL(string strsql)
 {
 	setCMDFinishFlag(-1);
-	SendMsgTo("MSQL", strsql);
-	waitCMDFinishFlag();
+	int nRt = SendMsgTo("MSQL", strsql);
+	if(nRt<0)
+		waitCMDFinishFlag();
+	return nRt;
 }
 
-void CClientWorker::SendXZWJ(string strsql)
+int CClientWorker::SendXZWJ(string strsql)
 {
-    SendMsgTo("XZWJ", strsql);
+    return SendMsgTo("XZWJ", strsql);
 }
 
-void CClientWorker::SendWJLB(string strMsg)
+int CClientWorker::SendWJLB(string strMsg)
 {
-	SendMsgTo("WJLB", strMsg);
+	return SendMsgTo("WJLB", strMsg);
 }
 
 
-void CClientWorker::SendSBBH(string strIP)
+int CClientWorker::SendSBBH(string strIP)
 {
-    SendMsgTo("SBBH", strIP);
+    return SendMsgTo("SBBH", strIP);
 }
 
 string CClientWorker::GetFileList()
@@ -123,4 +139,18 @@ string CClientWorker::GetFileList()
 string CClientWorker::GetDeviceNumber()
 {
     return m_strDeviceNum;
+}
+
+
+string CClientWorker::GetClass()
+{
+	return m_strClass;
+}
+
+string CClientWorker::GetCourse() {
+	return m_strCourse;
+}
+
+string CClientWorker::GetClassStudent() {
+	return m_strClassInfo;
 }

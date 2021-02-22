@@ -286,6 +286,15 @@ int StudentManager::UpFile(string& strClass, int op)
 				return 0;
 			}
 			BaseLib::StringReplaceAll(strPath, "\\", "\\\\");
+			strsql = ("select * from upfile where path='");
+			strsql += strPath + "';";
+			bool bRt = BaseLib::TSingleton<DataHelper>::Instance()->IsExistData(strsql);
+			if (bRt)
+			{
+				nRt = UpFile(strClass, 3);
+				return nRt;
+			}
+
 			strsql = "insert into upfile(fileName,studentName,className,path,deviceNumber,course,type,time) values(";
 			strsql += "'" + strFileName +"',";
 			strsql += "'" + strStudentName +"',";
@@ -300,6 +309,7 @@ int StudentManager::UpFile(string& strClass, int op)
 		{
 			strsql = "delete from upfile where path='" + strPath + "';";
 			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
+
 		}
 		else if (op == 2)
 		{
@@ -329,6 +339,37 @@ int StudentManager::UpFile(string& strClass, int op)
 				strsql = "select * from upfile ;";
 			}
 			nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strsql, strClass);
+		}
+		else if (op == 3)
+		{
+			oStr.str("");
+			oStr << "update upfile set";
+			if (!strStudentName.empty())
+			{
+				oStr << " studentName='" << strStudentName << "'";
+			}
+			if (!strCourse.empty())
+			{
+				oStr << ", course='" << strCourse << "'";
+			}
+			if (nType >= 0)
+			{
+				oStr << ", type=" << nType << "";
+			}
+			if (!strFileName.empty())
+			{
+				oStr << ", fileName='" << strFileName << "'";
+			}
+
+			if (!strDeviceNumber.empty())
+			{
+				oStr << ", deviceNumber='" << strDeviceNumber << "'";
+			}
+			BaseLib::StringReplaceAll(strPath, "\\", "\\\\");
+			oStr << ", time=now() where path='" << strPath << "';";
+			strsql = oStr.str();
+			BaseLib::StringReplaceAll(strsql, "set,", "set ");
+			nRt = BaseLib::TSingleton<DataHelper>::Instance()->excuteSql(strsql);
 		}
 	}
 	return nRt;
@@ -403,7 +444,7 @@ int StudentManager::DownFile(string& strClass, int op)
 		{
 			oStr.str("");
 			oStr  << "update downfile set";
-			if (!strAccess.empty())
+			if (!downfile["access"].isNull())
 			{
 				oStr << " access='" << strAccess << "'";
 			}

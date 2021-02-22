@@ -100,6 +100,10 @@ void CServerWorker::CommanXZWJ(string& strContent)
 		{
 			SendCXWJ(strContent);
 		}
+		else
+		{
+			DBGPRINT(DBG_LibevtClient_SEND,"²»´æÔÚXZWJ:"<<strPath);
+		}
 	}
 
 	//SendWCZL();
@@ -131,4 +135,18 @@ void CServerWorker::CommanSBBH(string& strContent){
 void CServerWorker::SendCXWJ(string& strContent)
 {
 	SendFileTo("CXWJ", strContent);
+}
+
+
+void CServerWorker::SendSKBJ(string& strClass, string& strCourse)
+{
+	Json::Value js;
+	js[FILE_CLASS] = strClass;
+	js[FILE_COURES] = strCourse;
+	string strsql,strOut;
+	strsql = "select * from studentinfo where className='"+strClass+"'";
+	int nRt = BaseLib::TSingleton<DataHelper>::Instance()->Display(strsql, strOut);;
+	js[CLASS_INFO] = strOut;
+	string strSend = JsonToString(js);
+	SendMsgTo("SKBJ", strSend);
 }

@@ -6,11 +6,11 @@ DataHelper::DataHelper()
 {
 	//初始化
 	if (0 == mysql_library_init(0, NULL, NULL)) {
-		cout << "mysql_library_init() succeed" << endl;
+		DBGPRINT(DBG_ERROR,"mysql_library_init() succeed");
 		initMysql();
 	}
 	else {
-		cout << "mysql_library_init() failed" << endl;
+		DBGPRINT(DBG_ERROR, "mysql_library_init() failed");
 	}
 }
 
@@ -24,20 +24,20 @@ DataHelper::~DataHelper()
 int DataHelper::initMysql()
 {
 	if (NULL != mysql_init(&m_mydata)) {
-		cout << "mysql_init(mydata) succeed" << endl;
+		DBGPRINT(DBG_ERROR,"mysql_init(mydata) succeed");
 	}
 	else {
-		cout << "mysql_init(mydata) failed" << endl;
+		DBGPRINT(DBG_ERROR, "mysql_init(mydata) failed");
 		return -1;
 	}
 	//处理中文
 	if (0 == mysql_options(&m_mydata, MYSQL_SET_CHARSET_NAME, "utf8mb4")) {
-		cout << "mysql_options() succeed" << endl;
+		DBGPRINT(DBG_ERROR, "mysql_options() succeed");
 	}
 	else {
-		cout << "mysql_options() failed" << endl;
+		DBGPRINT(DBG_ERROR, "mysql_options() failed");
 	}
-
+	return 0;
 }
 
 int DataHelper::Connect()
@@ -54,14 +54,14 @@ int DataHelper::Connect()
 	string strName = iniFile.ReadString("Database", "name", "test");
 	int port = iniFile.ReadInteger("Database", "port", 3306);
 
+	std::lock_guard<std::mutex> lock(m_data_mtx);
 	//连接数据库
 	if (NULL != mysql_real_connect(&m_mydata, strIp.c_str(), strAccount.c_str(), strPassword.c_str(), strName.c_str(), port, NULL, 0)) {
-		cout << "mysql_real_connect() succeed" << endl;
+		DBGPRINT(DBG_ERROR, "mysql_real_connect() succeed");
 	}
 	else {
+		DBGPRINT(DBG_ERROR, "mysql_real_connect() failed\n IP:"<< strIp<<" port:"<< port);
 		
-		cout << "mysql_real_connect() failed:"<< mysql_error(&m_mydata) << endl;
-
 		mysql_close(&m_mydata);
 		return -1;
 	}
@@ -72,15 +72,18 @@ int DataHelper::Connect()
 
 int DataHelper::excuteSql(std::string sqlstr)
 {
+
 	if (!IsConnect())
 	{
 		Connect();
 	}
+
+	std::lock_guard<std::mutex> lock(m_data_mtx);
 	if (0 == mysql_query(&m_mydata, sqlstr.c_str())) {
-		cout << "mysql_query() drop table succeed" << endl;
+		DBGPRINT(DBG_MYSQL_EXCUL, "mysql:"<<sqlstr);
 	}
 	else {
-		cout << "mysql_query() drop table failed" << mysql_error(&m_mydata) << endl;
+		DBGPRINT(DBG_ERROR, "mysql:" << sqlstr<< " err:" << mysql_error(&m_mydata));
 		return -1;
 	}
 
@@ -95,11 +98,11 @@ int DataHelper::Display(std::string sqlstr, string& strRt) {
 	}
 	MYSQL_RES *result = NULL;
 	stringstream sstream;
+
+	std::lock_guard<std::mutex> lock(m_data_mtx);
 	if (0 == mysql_query(&m_mydata, sqlstr.c_str())) {
-		cout << "mysql_query() select data succeed" << endl;
 		result = mysql_store_result(&m_mydata);
 		int rowcount = mysql_num_rows(result);
-		cout << "row count:" << rowcount << endl;
 
 		unsigned int fieldcount = mysql_num_fields(result);
 		MYSQL_FIELD *field = NULL;
@@ -119,9 +122,11 @@ int DataHelper::Display(std::string sqlstr, string& strRt) {
 			row = mysql_fetch_row(result);
 		}
 		strRt = sstream.str();
+		DBGPRINT(DBG_MYSQL_EXCUL, "mysql:" << sqlstr<<"\n"<<strRt);
 	}
 	else {
-		cout << "mysql_query() select data failed" << mysql_error(&m_mydata) << endl;
+
+		DBGPRINT(DBG_ERROR, "mysql:" << sqlstr << " err:" << mysql_error(&m_mydata));
 		return -1;
 	}
 
@@ -132,8 +137,10 @@ bool DataHelper::IsExistData(string strsql)
 {
 	MYSQL_RES *result = NULL;
 	stringstream sstream;
+
+	DBGPRINT(DBG_MYSQL_EXCUL, "mysql:" << strsql);
+	std::lock_guard<std::mutex> lock(m_data_mtx);
 	if (0 == mysql_query(&m_mydata, strsql.c_str())) {
-		cout << "mysql_query() select data succeed" << endl;
 		result = mysql_store_result(&m_mydata);
 		int rowcount = mysql_num_rows(result);
 		mysql_free_result(result);

@@ -20,6 +20,8 @@
 #define DEVICE_NUMBER	"devicenumber"
 #define DEVICE_IP		"deviceip"
 
+#define CLASS_INFO		"classinfo"
+
 
 #define FILE_LIST		"filelist"
 
@@ -28,6 +30,8 @@
 #define EXT_HR			".program"
 #define EXT_ABB			".abb"
 #define EXT_FANUC		".fanuc"
+
+#define DECOLLATOR		";"
 
 enum TCPSOURCETYPE { TCPSOURCE_SERVER, TCPSOURCE_CLIENT, TCPSOURCE_OTHER, TCPSOURCE_UNDEFINE };
 enum TCPPACKAGETYPE { TCPPACKAGE_MSG, TCPPACKAGE_FILE };

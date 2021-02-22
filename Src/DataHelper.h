@@ -3,6 +3,7 @@
 #include <mysql.h>
 #include <iostream>
 #include <sstream>
+#include <mutex>
 #include "dataStructure.h"
 
 using namespace std;
@@ -28,7 +29,7 @@ private:
 	MYSQL m_mydata;
 
 	BOOL m_bConnect;
-		
+	std::mutex m_data_mtx;
 };
 
 #endif

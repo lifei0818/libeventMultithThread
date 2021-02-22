@@ -37,6 +37,7 @@ private:
     void CommanSBBH(string& strContent);	//设备编号
 public:
 	void SendCXWJ(string& strContent);
+	void SendSKBJ(string& strClass, string& strCourse);		//上课班级
 private:
 	std::map<std::string, FILE_TYPE_VALUE> m_fileType;
 	std::map<std::string, COMMAND_TYPE_VALUE> m_commandType;

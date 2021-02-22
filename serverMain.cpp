@@ -2,12 +2,12 @@
 #include "server.h"
 #include "StudentManager.h"
 
-int main()
+int mainTest()
 {
-	LibEvtServer libEvt;
+	/*LibEvtServer libEvt;
 	while (1)
     {
         BaseLib::OS::sleep(SEC_TIME(1));
-	}
+	}*/
 	return 0;
 }

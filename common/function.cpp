@@ -96,6 +96,7 @@ void CWorker::Process(string strData)
 					continue;
 				}
 
+				DBGPRINT(DBG_Libevt_RECV, new_package.label);
 				excuteCommand(new_package.label, m_strMsgContent);
 				m_strMsgContent.clear();
 			}
@@ -106,7 +107,7 @@ void CWorker::Process(string strData)
 				Json::Value fileJS;
 				if (StringToJson(new_package.content, fileJS))
 				{
-					DBGPRINT(DBG_CLIENT_RECV, ">>> recv file: " << new_package.label << ", " << new_package.num << "/" << new_package.allnum);
+					DBGPRINT(DBG_Libevt_RECV, ">>> recv file: " << new_package.label << ", " << new_package.num << "/" << new_package.allnum);
 					string strPath(DIRECTORY_ROOT_UP);
 					strPath += fileJS[FILE_DESCRIBE][FILE_CLASS].asString() + PATH_SEPARATOR;
 					if (!BaseLib::IsFileExist(strPath.c_str()))
@@ -130,20 +131,19 @@ void CWorker::Process(string strData)
 						out.open(strPath.c_str(), ios::binary | ios::app);
 						if (!out) {
                             setCMDFinishFlag(1);
-							DBGPRINT(DBG_CLIENT_RECV, "Open File failed");
+							DBGPRINT(DBG_ERROR, "Open File failed:"<< strPath);
 							break;
 						}
-						out.seekg(0, ios::beg);
+						//out.seekg(0, ios::beg);
 					}
-
+					DBGPRINT(DBG_Libevt_RECV, "File:" << new_package.label << new_package.num << "/" << new_package.allnum << fileJS[FILE_CONTENT].asString().c_str());
 					out.write(fileJS[FILE_CONTENT].asString().c_str(), fileJS[FILE_CONTENT].asString().length());
-
+					out.close();
 					if (new_package.num < new_package.allnum) {
 						continue;
 					}
 
-					//DBGPRINT(DBG_CLIENT_RECV, "file from server is received:" << accept_fd);
-					out.close();
+					DBGPRINT(DBG_ERROR, new_package.label);
 					excuteFile(new_package.label, fileJS[FILE_DESCRIBE]);
 				}
 			}
@@ -159,6 +159,17 @@ void CWorker::Process(string strData)
 void CWorker::SetBev(bufferevent * bev)
 {
 	m_bev = bev ;
+}
+
+void CWorker::SetIP(string & strIP)
+{
+	m_strIP = strIP;
+}
+
+
+string CWorker::GetIP()
+{
+	return m_strIP;
 }
 
 bool CWorker::GetPackage(PagTCP & new_package)
@@ -215,6 +226,7 @@ bool CWorker::StringToJson(string & strSoure, Json::Value & Root)
 		}
 	}
 
+	DBGPRINT(DBG_Libevt_SEND, "json ½âÎö´íÎó:" << strSoure);
 	return false;
 }
 
@@ -247,6 +259,7 @@ string CWorker::GetDirectory(int nType,string strFileName)
     }
 	return strPath+TeachProgramDirect[nType];
 }
+
 void CWorker::SendFileTo(const char* label, string & strMsg)
 {
 	string filePath;
@@ -291,7 +304,9 @@ void CWorker::SendFileTo(const char* label, string & strMsg)
 		pag.allnum = time;
 		Json::Value contentJS;
 		contentJS[FILE_DESCRIBE] = fileJs[FILE_DESCRIBE];
-		contentJS[FILE_CONTENT] = fileBuf.substr(i * PAGSIZE, length);
+		string tmp = fileBuf.substr(i * PAGSIZE, length);
+		contentJS[FILE_CONTENT] = tmp;
+		//DBGPRINT(DBG_ERROR,"file "<<i<<"/"<<time<<"\t"<<tmp);
 		oStr.str("");
 		writeInfo->write(contentJS, &oStr);
 		pag.content = oStr.str();
@@ -307,6 +322,7 @@ void CWorker::SendFileTo(const char* label, string & strMsg)
 
 int CWorker::SendMsgTo(const char * label, string strMsg)
 {
+	DBGPRINT(DBG_Libevt_SEND, "send:"<<label);
 	int size = strMsg.length();
 	int time = size / PAGSIZE + 1;
 	for (int i = 0; i < time; i++) {
@@ -322,7 +338,7 @@ int CWorker::SendMsgTo(const char * label, string strMsg)
 		pag.allnum = time;
 		pag.content = strMsg.substr(i * PAGSIZE, length);
 
-		if (send_package(pag) < 0) {
+		if (send_package(pag) <= 0) {
 			return -1;
 		}
 	}
@@ -341,17 +357,19 @@ int CWorker::send_package(PagTCP& pag) {
 	str += PAGTAIL;
 
 	if (pag.type == TCPPACKAGE_MSG) {
-		DBGPRINT(DBG_CLIENT_SEND, ">>> send msg: " << pag.label << ", " << pag.num << "/" << pag.allnum << ", " << pag.content);
+		DBGPRINT(DBG_Libevt_SEND, ">>> send msg: " << pag.label << ", " << pag.num << "/" << pag.allnum << ", " << pag.content);
 	}
 	else if (pag.type == TCPPACKAGE_FILE) {
-		DBGPRINT(DBG_CLIENT_SEND, ">>> send file: " << pag.label << ", " << pag.num << "/" << pag.allnum << ", " << pag.content);
+		DBGPRINT(DBG_Libevt_SEND, ">>> send file: " << pag.label << ", " << pag.num << "/" << pag.allnum << ", " << pag.content);
 	}
 
 	//if (send(fd, str.c_str(), str.length(), 0) < 0) {
-	if (SendMsgTo(str) < 0) {
-		DBGPRINT(DBG_CLIENT_SEND, "send TCP failed: " << errno);
+	int nSend = SendMsgTo(str);
+	if (nSend <= 0) {
+		DBGPRINT(DBG_Libevt_SEND, "send TCP failed: " << errno);
 		return -1;
 	}
+	DBGPRINT(DBG_Libevt_SEND, "nSend: " << nSend);
 
 	return 0;
 }
@@ -377,8 +395,8 @@ string CWorker::GetExtension(int nType)
 }
 int CWorker::SendMsgTo(string & strMsg)
 {
-	//bufferevent_write(m_bev, strMsg.c_str(), strMsg.length());
-	return send(bufferevent_getfd(m_bev), strMsg.c_str(), strMsg.length(), 0);
+	int nSend = send(bufferevent_getfd(m_bev), strMsg.c_str(), strMsg.length(), 0);
+	return nSend;
 }
 void CWorker::setCMDFinishFlag(int flag) {
 	m_cmdFinishFlag = flag;
@@ -390,6 +408,6 @@ int CWorker::waitCMDFinishFlag() {
 		if (m_cmdFinishFlag >= 0) {
 			return m_cmdFinishFlag;
 		}
-		BaseLib::OS::sleep(1);
+		BaseLib::OS::msleep(200);
 	}
 }
